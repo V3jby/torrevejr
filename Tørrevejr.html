@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Is it raining and good drying weather?</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+      $(document).ready(function() {
+        var api_key = 'bb95120518eb14ab25ee3a89ad9769ec';
+        var current_weather_url = 'https://api.openweathermap.org/data/2.5/weather?q=Frederikshavn,Dk&appid=' + api_key;
+        var forecast_url = 'https://api.openweathermap.org/data/2.5/forecast?q=Frederikshavn,Dk&appid=' + api_key;
+
+        // Get current weather conditions
+        $.getJSON(current_weather_url, function(current_data) {
+          var weather = current_data.weather[0].main;
+          var humidity = current_data.main.humidity;
+          if (weather == 'Rain') {
+            $('#result').text('Det regner');
+            $('#drying').text('');
+          } else {
+            $('#result').text('Det regner ikke');
+            if (humidity < 75) {
+              $('#drying').text('Det er godt tørre vejr.');
+            } else {
+              $('#drying').text('Det er ikke tørre vejr.');
+            }
+          }
+          $('#humidity').text('Luftfugtigheden er ' + humidity + '%.');
+
+          // Get hourly weather forecast
+          $.getJSON(forecast_url, function(forecast_data) {
+            var forecast_list = forecast_data.list;
+            var rain_in_forecast = false;
+            for (var i = 0; i < forecast_list.length; i++) {
+              var forecast = forecast_list[i];
+              var forecast_weather = forecast.weather[0].main;
+              if (forecast_weather == 'Rain') {
+                rain_in_forecast = true;
+                break;
+              }
+            }
+            if (rain_in_forecast) {
+              $('#rain_forecast').text('Det vil regne senere i dag.');
+            } else {
+              $('#rain_forecast').text('Det vil ikke regne senere i dag.');
+            }
+          });
+        });
+      });
+    </script>
+  </head>
+  <body>
+    <h1>Er det godt tørre vejr?</h1>
+    <p id="result">Checking...</p>
+    <p id="humidity"></p>
+    <p id="drying"></p>
+    <p id="rain_forecast"></p>
+  </body>
+</html>
