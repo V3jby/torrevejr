@@ -5,54 +5,63 @@
     <title>Skal vasketøjet ud?</title>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-$(document).ready(function() {
-  var api_key = 'bb95120518eb14ab25ee3a89ad9769ec';
-  var city_name = 'Frederikshavn,Dk';
-  var api_url = 'https://api.openweathermap.org/data/2.5/forecast?q=' + city_name + '&appid=' + api_key;
-
-  $.getJSON(api_url, function(data) {
-    var days = ['Søndag', 'Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag'];
-    var today = new Date().getDay();
-    var forecast = data.list.slice(0, 24 * 3); // get the next 3 days of data
-
-    var good_drying_days = {};
-    forecast.forEach(function(item) {
-      var date = new Date(item.dt_txt);
-      var day_name = days[date.getDay()];
-      var humidity = item.main.humidity;
-      var weather = item.weather[0].main;
-      
-      if (weather != 'Rain' && humidity < 75) {
-        if (!good_drying_days[day_name]) {
-          good_drying_days[day_name] = [];
+        function getLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(showPosition);
+            } else {
+                console.log("Geolocation is not supported by this browser.");
+            }
         }
-        good_drying_days[day_name].push({date: date, humidity: humidity});
-      }
-    });
+        
+        function showPosition(position) {
+            var latitude = position.coords.latitude;
+            var longitude = position.coords.longitude;
+            var api_key = 'bb95120518eb14ab25ee3a89ad9769ec';
+            var api_url = 'https://api.openweathermap.org/data/2.5/forecast?lat=' + latitude + '&lon=' + longitude + '&appid=' + api_key;
 
-    if (Object.keys(good_drying_days).length > 0) {
-      var result = 'Ja!, Men kun på disse dage:<br>';
-      Object.keys(good_drying_days).forEach(function(day_name) {
-        var humidities = good_drying_days[day_name];
-        var max_humidity = Math.max.apply(null, humidities.map(function(h) { return h.humidity; }));
-        result += day_name + '\t(' + formatDate(humidities[0].date) + '):\t' + max_humidity + '% Luftfugtighed<br>';
-      });
-      $('#result').html(result);
-    } else {
-      $('#result').html('Nej, Dårligt tørre vejr i de næste 7 dage.');
-    }
-  });
-});
+            $.getJSON(api_url, function(data) {
+                var days = ['Søndag', 'Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag'];
+                var today = new Date().getDay();
+                var forecast = data.list.slice(0, 24 * 3); // get the next 3 days of data
 
-function formatDate(date) {
-  var day = date.getDate();
-  var month = date.getMonth() + 1;
-  var year = date.getFullYear();
-  return day + '.' + month + '.' + year;
-}
+                var good_drying_days = {};
+                forecast.forEach(function(item) {
+                    var date = new Date(item.dt_txt);
+                    var day_name = days[date.getDay()];
+                    var humidity = item.main.humidity;
+                    var weather = item.weather[0].main;
+
+                    if (weather != 'Rain' && humidity < 75) {
+                        if (!good_drying_days[day_name]) {
+                            good_drying_days[day_name] = [];
+                        }
+                        good_drying_days[day_name].push({date: date, humidity: humidity});
+                    }
+                });
+
+                if (Object.keys(good_drying_days).length > 0) {
+                    var result = 'Ja!, Men kun på disse dage:<br>';
+                    Object.keys(good_drying_days).forEach(function(day_name) {
+                        var humidities = good_drying_days[day_name];
+                        var max_humidity = Math.max.apply(null, humidities.map(function(h) { return h.humidity; }));
+                        result += day_name + '\t(' + formatDate(humidities[0].date) + '):\t' + max_humidity + '% Luftfugtighed<br>';
+                    });
+                    $('#result').html(result);
+                } else {
+                    $('#result').html('Nej, Dårligt tørre vejr i de næste 7 dage.');
+                }
+            });
+        }
+
+        function formatDate(date) {
+            var day = date.getDate();
+            var month = date.getMonth() + 1;
+            var year = date.getFullYear();
+            return day + '.' + month + '.' + year;
+        }
     </script>
   </head>
-  <body>
+  <body onload="getLocation();">
     <h1>Skal vasketøjet ud?</h1>
     <p id="result">Checking...</p>
   </body>
