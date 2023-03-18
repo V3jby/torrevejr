@@ -1,68 +1,87 @@
 <!DOCTYPE html>
 <html>
   <head>
+  
     <meta charset="UTF-8">
     <title>Skal vasketøjet ud?</title>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script>
-        function getLocation() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(showPosition);
-            } else {
-                console.log("Geolocation is not supported by this browser.");
-            }
+	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    function getLocation() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(showPosition);
+        } else {
+            console.log("Geolocation is not supported by this browser.");
         }
-        
-        function showPosition(position) {
+    }
+    
+    function showPosition(position) {
+        var latitude = position.coords.latitude;
+        var longitude = position.coords.longitude;
+        var url = 'https://nominatim.openstreetmap.org/reverse?format=json&lat=' + latitude + '&lon=' + longitude;
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                var cityName = null;
+                var address = data.address;
+                if (address.city) {
+                    cityName = address.city;
+                } else if (address.town) {
+                    cityName = address.town;
+                } else if (address.village) {
+                    cityName = address.village;
+                } else if (address.hamlet) {
+                    cityName = address.hamlet;
+                }
+                document.getElementById("cityName").innerHTML = "Din nuværende by er: " + cityName;
+                
+                // call the weather API with the city name
+                    
             var latitude = position.coords.latitude;
             var longitude = position.coords.longitude;
             var api_key = 'bb95120518eb14ab25ee3a89ad9769ec';
             var api_url = 'https://api.openweathermap.org/data/2.5/forecast?lat=' + latitude + '&lon=' + longitude + '&appid=' + api_key;
 
-            $.getJSON(api_url, function(data) {
-                var days = ['Søndag', 'Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag'];
-                var today = new Date().getDay();
-                var forecast = data.list.slice(0, 24 * 3); // get the next 3 days of data
+                $.getJSON(api_url, function(data) {
+                    var days = ['Søndag', 'Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag'];
+                    var today = new Date().getDay();
+                    var forecast = data.list.slice(0, 24 * 3); // get the next 3 days of data
 
-                var good_drying_days = {};
-                forecast.forEach(function(item) {
-                    var date = new Date(item.dt_txt);
-                    var day_name = days[date.getDay()];
-                    var humidity = item.main.humidity;
-                    var weather = item.weather[0].main;
+                    var good_drying_days = {};
+                    forecast.forEach(function(item) {
+                        var date = new Date(item.dt_txt);
+                        var day_name = days[date.getDay()];
+                        var humidity = item.main.humidity;
+                        var weather = item.weather[0].main;
 
-                    if (weather != 'Rain' && humidity < 75) {
-                        if (!good_drying_days[day_name]) {
-                            good_drying_days[day_name] = [];
+                        if (weather != 'Rain' && humidity < 75) {
+                            if (!good_drying_days[day_name]) {
+                                good_drying_days[day_name] = [];
+                            }
+                            good_drying_days[day_name].push({date: date, humidity: humidity});
                         }
-                        good_drying_days[day_name].push({date: date, humidity: humidity});
+                    });
+
+                    if (Object.keys(good_drying_days).length > 0) {
+                        var result = 'Ja!, Men kun på disse dage:<br>';
+                        Object.keys(good_drying_days).forEach(function(day_name) {
+                            var humidities = good_drying_days[day_name];
+                            var max_humidity = Math.max.apply(null, humidities.map(function(h) { return h.humidity; }));
+                            result += day_name + '\t(' + formatDate(humidities[0].date) + '):\t' + max_humidity + '% Luftfugtighed<br>';
+                        });
+                        $('#result').html(result);
+                    } else {
+                        $('#result').html('Nej, Dårligt tørre vejr i de næste 7 dage.');
                     }
                 });
+            })
+            .catch(error => console.error(error));
+    }
+</script>
 
-                if (Object.keys(good_drying_days).length > 0) {
-                    var result = 'Ja!, Men kun på disse dage:<br>';
-                    Object.keys(good_drying_days).forEach(function(day_name) {
-                        var humidities = good_drying_days[day_name];
-                        var max_humidity = Math.max.apply(null, humidities.map(function(h) { return h.humidity; }));
-                        result += day_name + '\t(' + formatDate(humidities[0].date) + '):\t' + max_humidity + '% Luftfugtighed<br>';
-                    });
-                    $('#result').html(result);
-                } else {
-                    $('#result').html('Nej, Dårligt tørre vejr i de næste 7 dage.');
-                }
-            });
-        }
-
-        function formatDate(date) {
-            var day = date.getDate();
-            var month = date.getMonth() + 1;
-            var year = date.getFullYear();
-            return day + '.' + month + '.' + year;
-        }
-    </script>
   </head>
-  <body onload="getLocation();">
+  <body onload="getLocation()">
     <h1>Skal vasketøjet ud?</h1>
     <p id="result">Checking...</p>
+	<p id="cityName"></p> <!-- Add this line here -->
   </body>
 </html>
