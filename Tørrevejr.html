@@ -10,13 +10,13 @@
     </style>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-        function getLocation() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(showPosition);
-            } else {
-                console.log("Geolocation is not supported by this browser.");
-            }
-        }
+function getLocation() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(showPosition);
+    } else {
+        document.getElementById("errorGPS").textContent = "Geolocation is not supported by this browser.";
+    }
+}
         
         function showPosition(position) {
             var latitude = position.coords.latitude;
@@ -88,7 +88,8 @@
   </head>
   <body onload="getLocation();">
     <h1>Skal vasketøjet ud?</h1>
-	  <h2><p id="result">Checking...</p></h2>
+	  <h1> <p id=errorGPS"> Tester GPS... </p></h1>
+	  <h2><p id="result">Finder vejret...</p></h2>
 	<p id="cityName"></p> <!-- Add this line here -->
   </body>
 </html>
