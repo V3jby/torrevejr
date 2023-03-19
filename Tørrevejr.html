@@ -10,13 +10,32 @@
     </style>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-function getLocation() {
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(showPosition);
-    } else {
-        document.getElementById("errorGPS").textContent = "Geolocation is not supported by this browser.";
-    }
-}
+	
+	
+		function getLocation() {
+			if (navigator.geolocation) {
+				navigator.geolocation.getCurrentPosition(showPosition, showError);
+			} else {
+				document.getElementById("errorGPS").innerHTML = "GPS Lokation er ikke tilgængelig via din browser.";
+			}
+		}
+
+		function showError(error) {
+			switch(error.code) {
+				case error.PERMISSION_DENIED:
+					document.getElementById("errorGPS").innerHTML = "Du skal acceptere at bruge GPS Data.";
+					break;
+				case error.POSITION_UNAVAILABLE:
+					document.getElementById("errorGPS").innerHTML = "Din lokation er ikke tilgængelig.";
+					break;
+				case error.TIMEOUT:
+					document.getElementById("errorGPS").innerHTML = "Det tog for lang tid med at finde din lokation.";
+					break;
+				case error.UNKNOWN_ERROR:
+					document.getElementById("errorGPS").innerHTML = "En ukendt fejl er opstået.";
+					break;
+			}
+		}
         
         function showPosition(position) {
             var latitude = position.coords.latitude;
@@ -88,8 +107,8 @@ function getLocation() {
   </head>
   <body onload="getLocation();">
     <h1>Skal vasketøjet ud?</h1>
-	  <h1> <p id="errorGPS"></p></h1>
+	 <h1><p id="errorGPS"></p></h1>
 	  <h2><p id="result">Finder vejret...</p></h2>
-	<p id="cityName"></p> <!-- Add this line here -->
+	<p id="cityName"></p>
   </body>
 </html>
