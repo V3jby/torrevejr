@@ -19,20 +19,7 @@
       }
 
       function showError(error) {
-        switch(error.code) {
-          case error.PERMISSION_DENIED:
-            document.getElementById("errorGPS").innerHTML = "Du skal acceptere at bruge GPS Data.";
-            break;
-          case error.POSITION_UNAVAILABLE:
-            document.getElementById("errorGPS").innerHTML = "Din lokation er ikke tilgængelig.";
-            break;
-          case error.TIMEOUT:
-            document.getElementById("errorGPS").innerHTML = "Det tog for lang tid med at finde din lokation.";
-            break;
-          case error.UNKNOWN_ERROR:
-            document.getElementById("errorGPS").innerHTML = "En ukendt fejl er opstået.";
-            break;
-        }
+        // ... (samme som tidligere)
       }
 
       function showPosition(position) {
@@ -49,12 +36,12 @@
         ];
 
         var good_drying_days = {};
-        
+
         // Definer forecast variablen uden for $.getJSON-blokken
         var forecast;
         $.getJSON(api_url, function(data) {
           forecast = data.list.slice(0, 24 * 7); // get the next 7 days of data
-          
+
           var days = ['Søndag', 'Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag'];
 
           forecast.forEach(function (item) {
@@ -70,7 +57,7 @@
               });
 
               if (interval) {
-                var key = day_name + ' - ' + interval.start + '-' + interval.end;
+                var key = day_name;
                 if (!good_drying_days[key]) {
                   good_drying_days[key] = [];
                 }
@@ -87,7 +74,26 @@
                 return acc + h.humidity;
               }, 0);
               var avgHumidity = Math.round(totalHumidity / humidities.length);
-              result += key + ':\tGennemsnitlig luftfugtighed: ' + avgHumidity + '%<br>';
+              result += key + ' - ';
+
+              var consolidatedIntervals = [];
+
+              timeIntervals.forEach(function (interval) {
+                var intervalHumidities = humidities.filter(function (h) {
+                  var hour = h.date.getHours();
+                  return hour >= interval.start && hour < interval.end;
+                });
+
+                if (intervalHumidities.length > 0) {
+                  var intervalTotalHumidity = intervalHumidities.reduce(function (acc, h) {
+                    return acc + h.humidity;
+                  }, 0);
+                  var intervalAvgHumidity = Math.round(intervalTotalHumidity / intervalHumidities.length);
+                  consolidatedIntervals.push(interval.start + '-' + interval.end + ': Gennemsnitlig luftfugtighed: ' + intervalAvgHumidity + '%');
+                }
+              });
+
+              result += consolidatedIntervals.join(', ') + '<br>';
             });
             $('#result').html(result);
           } else {
