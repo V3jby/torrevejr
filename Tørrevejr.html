@@ -57,7 +57,10 @@
                   console.log("Processing forecast for " + day);
                     var dt_txt = item.dt_txt;
                     var hour = new Date(dt_txt).getHours();
-                    var dayIndex = new Date(dt_txt).getDay();
+                  var day = days[new Date(dt_txt).getDay()];
+                  console.log("days array:", days); // Tilføjer logging af 'days' arrayet
+                  console.log("day:", day); // Tilføjer logging af 'day' variablen  
+                  var dayIndex = new Date(dt_txt).getDay();
                     var day = days[dayIndex];
                     console.log("dayIndex:", dayIndex);
                     
