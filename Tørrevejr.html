@@ -13,7 +13,7 @@
         function getLocation() {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(showPosition, showError);
-            } else {
+            } else { 
                 document.getElementById("errorGPS").innerHTML = "GPS Lokation er ikke tilgængelig via din browser.";
             }
         }
@@ -43,7 +43,6 @@
 
             $.getJSON(api_url, function(data) {
                 var days = ['Søndag', 'Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag'];
-                var intervals = {'Morgen': [8, 11], 'Formiddag': [11, 14], 'Eftermiddag': [14, 17], 'Aften': [17, 22]};
                 var forecast = data.list.slice(0, 24 * 5); // get the next 5 days of data
                 var location = data.city.name;
                 document.getElementById("location").innerHTML = "Din nuværende by er: " + location + ".";
@@ -60,25 +59,22 @@
                     var day = days[new Date(dt_txt).getDay()];
                     
                     if (weather != 'Rain' && humidity < 75) {
-                        for (var interval in intervals) {
-                            if (hour >= intervals[interval][0] && hour < intervals[interval][1]) {
-                                if (!good_drying_days.hasOwnProperty(day)) {
-                                    good_drying_days[day] = [];
-                                    humidity_data[day] = [];
-                                }
-                                good_drying_days[day].push(hour);
-                                humidity_data[day].push(humidity);
-                            }
+                        if (!good_drying_days.hasOwnProperty(day)) {
+                            good_drying_days[day] = [];
+                            humidity_data[day] = [];
                         }
+                        good_drying_days[day].push(hour);
+                        humidity_data[day].push(humidity);
                     }
                 });
-                
+
                 // Consolidating the time intervals
                 for (var day in good_drying_days) {
                     var output = document.getElementById("output");
                     var div = document.createElement("div");
                     var day_hours = good_drying_days[day];
-                    day_hours.sort(); // sort the hours
+                    day_hours.sort((a, b) => a - b); // sort the hours
+
                     var consolidated_hours = [];
                     var start_hour = day_hours[0];
                     var end_hour = day_hours[0];
@@ -87,24 +83,32 @@
                         if (day_hours[i] == end_hour + 1) {
                             end_hour = day_hours[i]; // extend the current interval
                         } else {
-                            consolidated_hours.push([start_hour, end_hour + 1]); // add the current interval and start a new one
+                            if (end_hour - start_hour >= 2) {
+                                consolidated_hours.push([start_hour, end_hour + 1]); // add the current interval if it's at least 3 hours long
+                            }
                             start_hour = day_hours[i];
                             end_hour = day_hours[i];
                         }
                     }
-                    consolidated_hours.push([start_hour, end_hour + 1]); // add the last interval
+
+                    if (end_hour - start_hour >= 2) {
+                        consolidated_hours.push([start_hour, end_hour + 1]); // add the last interval if it's at least 3 hours long
+                    }
                     
                     var average_humidity = Math.round(humidity_data[day].reduce((a, b) => a + b) / humidity_data[day].length);
-                    div.textContent = day + ": " + consolidated_hours.map(hours => hours.join('-')).join(' og ') + " (Gennemsnitlig luftfugtighed: " + average_humidity + "%).";
-                    output.appendChild(div);
+                    
+                    if (consolidated_hours.length > 0) {
+                        div.textContent = day + ": " + consolidated_hours.map(hours => hours.join('-')).join(' og ') + " (Gennemsnitlig luftfugtighed: " + average_humidity + "%).";
+                        output.appendChild(div);
+                    }
                 }
             });
         }
     </script>
   </head>
   <body onload="getLocation()">
-    <h1 id="heading"></h1>
     <div id="errorGPS"></div>
+    <h1 id="heading"></h1>
     <div id="location"></div>
     <div id="output"></div>
   </body>
