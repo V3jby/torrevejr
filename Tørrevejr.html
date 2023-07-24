@@ -10,6 +10,8 @@
     </style>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
+        var hasProcessed = false;
+
         function log(message) {
             var logDiv = document.getElementById('log');
             var p = document.createElement('p');
@@ -43,6 +45,11 @@
         }
 
         function showPosition(position) {
+            if (hasProcessed) {
+                return;
+            }
+            hasProcessed = true;
+
             var latitude = position.coords.latitude;
             var longitude = position.coords.longitude;
             var api_key = 'bb95120518eb14ab25ee3a89ad9769ec';
