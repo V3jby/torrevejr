@@ -59,9 +59,12 @@
               if (interval) {
                 var key = day_name;
                 if (!good_drying_days[key]) {
-                  good_drying_days[key] = [];
+                  good_drying_days[key] = {};
+                  timeIntervals.forEach(function (interval) {
+                    good_drying_days[key][interval.start] = [];
+                  });
                 }
-                good_drying_days[key].push({ date: date, humidity: humidity, interval: interval.start + '-' + interval.end });
+                good_drying_days[key][interval.start].push({ date: date, humidity: humidity });
               }
             }
           });
@@ -69,25 +72,34 @@
           if (Object.keys(good_drying_days).length > 0) {
             var result = 'Ja!, Men kun på disse dage og tidspunkter:<br>';
             Object.keys(good_drying_days).forEach(function (key) {
-              var consolidatedIntervals = {};
-              good_drying_days[key].forEach(function (entry) {
-                if (!consolidatedIntervals[entry.interval]) {
-                  consolidatedIntervals[entry.interval] = [];
+              var consolidatedIntervals = [];
+
+              timeIntervals.forEach(function (interval) {
+                var humidities = good_drying_days[key][interval.start];
+                if (humidities.length > 0) {
+                  var totalHumidity = humidities.reduce(function (acc, h) {
+                    return acc + h.humidity;
+                  }, 0);
+                  var avgHumidity = Math.round(totalHumidity / humidities.length);
+                  consolidatedIntervals.push(interval.start + '-' + interval.end + ': Gennemsnitlig luftfugtighed: ' + avgHumidity + '%');
                 }
-                consolidatedIntervals[entry.interval].push(entry.humidity);
               });
 
+              // Konsolider tidspunkter, der ligger op ad hinanden
               var consolidatedResult = '';
-              Object.keys(consolidatedIntervals).forEach(function (interval) {
-                var humidities = consolidatedIntervals[interval];
-                var totalHumidity = humidities.reduce(function (acc, h) {
-                  return acc + h;
-                }, 0);
-                var avgHumidity = Math.round(totalHumidity / humidities.length);
-                consolidatedResult += interval + ': Gennemsnitlig luftfugtighed: ' + avgHumidity + '%, ';
-              });
+              for (var i = 0; i < consolidatedIntervals.length; i++) {
+                var currentInterval = consolidatedIntervals[i];
+                var nextInterval = consolidatedIntervals[i + 1];
+                if (nextInterval && nextInterval.startsWith(currentInterval.substring(0, 2))) {
+                  consolidatedResult += currentInterval.substring(0, 2) + '-' + nextInterval.substring(3) + ', ';
+                  i++;
+                } else {
+                  consolidatedResult += currentInterval + ', ';
+                }
+              }
+              consolidatedResult = consolidatedResult.slice(0, -2);
 
-              result += key + ' - ' + consolidatedResult.slice(0, -2) + '<br>';
+              result += key + ' - ' + consolidatedResult + '<br>';
             });
 
             $('#result').html(result);
