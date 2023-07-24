@@ -83,7 +83,7 @@
                     if (goodIntervals.length === 4) {
                         result += day_name + ': Godt tørrevejr hele dagen.<br>';
                     } else if (goodIntervals.length > 0) {
-                        result += day_name + ': Godt tørrevejr om ' + goodIntervals.join(', ') + '.<br>';
+                        result += day_name + ': Godt tørrevejr kl ' + goodIntervals.join(', ') + '.<br>';
                     }
                 });
                 $('#result').html(result);
