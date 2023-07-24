@@ -45,6 +45,9 @@
                 var days = ['Søndag', 'Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag'];
                 var intervals = {'Morgen': [8, 11], 'Formiddag': [11, 14], 'Eftermiddag': [14, 17], 'Aften': [17, 22]};
                 var forecast = data.list.slice(0, 24 * 5); // get the next 5 days of data
+                var location = data.city.name;
+                document.getElementById("location").innerHTML = "Din nuværende by er: " + location + ".";
+                document.getElementById("heading").innerHTML = "Skal vasketøjet ud?";
 
                 var good_drying_days = {};
 
@@ -85,7 +88,7 @@
                         }
                     }
                     
-                    div.textContent = day + ": Godt tørrevejr " + merged_intervals.map(interval => intervals[interval].join('-')).join(' og ') + ".";
+                    div.textContent = day + ": " + merged_intervals.map(interval => intervals[interval].join('-')).join(' og ') + " (Luftfugtighed under 75%).";
                     output.appendChild(div);
                 }
             });
@@ -93,7 +96,9 @@
     </script>
   </head>
   <body onload="getLocation()">
+    <h1 id="heading"></h1>
     <div id="errorGPS"></div>
+    <div id="location"></div>
     <div id="output"></div>
   </body>
 </html>
