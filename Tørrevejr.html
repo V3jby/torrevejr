@@ -73,27 +73,24 @@
 
                         var consolidated_hours = [];
                         var start_hour = day_hours[0];
-                        var end_hour = day_hours[0];
 
                         for (var i = 1; i < day_hours.length; i++) {
-                            if (day_hours[i] == end_hour + 1) {
-                                end_hour = day_hours[i]; // extend the current interval
+                            if (day_hours[i] == start_hour + 1) {
+                                hasGoodDays = true;
                             } else {
-                                if (end_hour - start_hour >= 3) {
-                                    consolidated_hours.push([start_hour, end_hour]); // add the current interval if it's at least 3 hours long
-                                    hasGoodDays = true;
+                                if (hasGoodDays) {
+                                    consolidated_hours.push([start_hour, day_hours[i - 1]]);
+                                    hasGoodDays = false;
                                 }
                                 start_hour = day_hours[i];
-                                end_hour = day_hours[i];
                             }
                         }
 
-                        if (end_hour - start_hour >= 3) {
-                            consolidated_hours.push([start_hour, end_hour]); // add the last interval if it's at least 3 hours long
-                            hasGoodDays = true;
+                        if (hasGoodDays) {
+                            consolidated_hours.push([start_hour, day_hours[day_hours.length - 1]]);
                         }
 
-                        if (hasGoodDays && consolidated_hours.length > 0) {
+                        if (consolidated_hours.length > 0) {
                             var intervals = consolidated_hours.map(hours => hours.join('-')).join(', ');
                             var averageHumidity = consolidated_hours.reduce((sum, hours) => {
                                 var startIdx = hours[0] - 8;
