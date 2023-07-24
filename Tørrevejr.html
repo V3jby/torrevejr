@@ -50,6 +50,7 @@
                 document.getElementById("heading").innerHTML = "Skal vasketøjet ud?";
 
                 var good_drying_days = {};
+                var humidity_data = {};
 
                 forecast.forEach(function(item) {
                     var weather = item.weather[0].main;
@@ -63,8 +64,10 @@
                             if (hour >= intervals[interval][0] && hour < intervals[interval][1]) {
                                 if (!good_drying_days.hasOwnProperty(day)) {
                                     good_drying_days[day] = [];
+                                    humidity_data[day] = [];
                                 }
-                                good_drying_days[day].push(interval);
+                                good_drying_days[day].push(hour);
+                                humidity_data[day].push(humidity);
                             }
                         }
                     }
@@ -74,21 +77,25 @@
                 for (var day in good_drying_days) {
                     var output = document.getElementById("output");
                     var div = document.createElement("div");
-                    var day_intervals = good_drying_days[day].filter((v, i, a) => a.indexOf(v) === i); // removing duplicate intervals
-                    day_intervals.sort((a, b) => intervals[a][0] - intervals[b][0]); // sort the intervals
-                    var merged_intervals = [day_intervals[0]]; // initializing with the first interval
+                    var day_hours = good_drying_days[day];
+                    day_hours.sort(); // sort the hours
+                    var consolidated_hours = [];
+                    var start_hour = day_hours[0];
+                    var end_hour = day_hours[0];
 
-                    for (var i = 1; i < day_intervals.length; i++) {
-                        var last_interval = merged_intervals[merged_intervals.length - 1];
-                        var current_interval = day_intervals[i];
-                        if (intervals[last_interval][1] >= intervals[current_interval][0]) {
-                            merged_intervals[merged_intervals.length - 1] = current_interval; // replace the last interval
+                    for (var i = 1; i < day_hours.length; i++) {
+                        if (day_hours[i] == end_hour + 1) {
+                            end_hour = day_hours[i]; // extend the current interval
                         } else {
-                            merged_intervals.push(current_interval); // add a new interval
+                            consolidated_hours.push([start_hour, end_hour + 1]); // add the current interval and start a new one
+                            start_hour = day_hours[i];
+                            end_hour = day_hours[i];
                         }
                     }
+                    consolidated_hours.push([start_hour, end_hour + 1]); // add the last interval
                     
-                    div.textContent = day + ": " + merged_intervals.map(interval => intervals[interval].join('-')).join(' og ') + " (Luftfugtighed under 75%).";
+                    var average_humidity = Math.round(humidity_data[day].reduce((a, b) => a + b) / humidity_data[day].length);
+                    div.textContent = day + ": " + consolidated_hours.map(hours => hours.join('-')).join(' og ') + " (Gennemsnitlig luftfugtighed: " + average_humidity + "%).";
                     output.appendChild(div);
                 }
             });
