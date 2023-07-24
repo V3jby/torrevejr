@@ -19,11 +19,27 @@
       }
 
       function showError(error) {
-        // ... (samme som tidligere)
+        switch(error.code) {
+          case error.PERMISSION_DENIED:
+            document.getElementById("errorGPS").innerHTML = "Du skal acceptere at bruge GPS Data.";
+            break;
+          case error.POSITION_UNAVAILABLE:
+            document.getElementById("errorGPS").innerHTML = "Din lokation er ikke tilgængelig.";
+            break;
+          case error.TIMEOUT:
+            document.getElementById("errorGPS").innerHTML = "Det tog for lang tid med at finde din lokation.";
+            break;
+          case error.UNKNOWN_ERROR:
+            document.getElementById("errorGPS").innerHTML = "En ukendt fejl er opstået.";
+            break;
+        }
       }
 
       function showPosition(position) {
-        // ... (samme som tidligere)
+        var latitude = position.coords.latitude;
+        var longitude = position.coords.longitude;
+        var api_key = 'bb95120518eb14ab25ee3a89ad9769ec';
+        var api_url = 'https://api.openweathermap.org/data/2.5/forecast?lat=' + latitude + '&lon=' + longitude + '&appid=' + api_key;
 
         var timeIntervals = [
           { start: 8, end: 11 },
@@ -33,45 +49,70 @@
         ];
 
         var good_drying_days = {};
-        forecast.forEach(function (item) {
-          var date = new Date(item.dt_txt);
-          var day_name = days[date.getDay()];
-          var humidity = item.main.humidity;
-          var weather = item.weather[0].main;
-          var hour = date.getHours();
+        
+        // Definer forecast variablen uden for $.getJSON-blokken
+        var forecast;
+        $.getJSON(api_url, function(data) {
+          forecast = data.list.slice(0, 24 * 7); // get the next 7 days of data
+          
+          var days = ['Søndag', 'Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag'];
 
-          if (weather !== 'Rain' && humidity < 75 && hour >= 8 && hour <= 22) {
-            var interval = timeIntervals.find(function (interval) {
-              return hour >= interval.start && hour < interval.end;
-            });
+          forecast.forEach(function (item) {
+            var date = new Date(item.dt_txt);
+            var day_name = days[date.getDay()];
+            var humidity = item.main.humidity;
+            var weather = item.weather[0].main;
+            var hour = date.getHours();
 
-            if (interval) {
-              var key = day_name + ' - ' + interval.start + '-' + interval.end;
-              if (!good_drying_days[key]) {
-                good_drying_days[key] = [];
+            if (weather !== 'Rain' && humidity < 75 && hour >= 8 && hour <= 22) {
+              var interval = timeIntervals.find(function (interval) {
+                return hour >= interval.start && hour < interval.end;
+              });
+
+              if (interval) {
+                var key = day_name + ' - ' + interval.start + '-' + interval.end;
+                if (!good_drying_days[key]) {
+                  good_drying_days[key] = [];
+                }
+                good_drying_days[key].push({ date: date, humidity: humidity });
               }
-              good_drying_days[key].push({ date: date, humidity: humidity });
             }
+          });
+
+          if (Object.keys(good_drying_days).length > 0) {
+            var result = 'Ja!, Men kun på disse dage og tidspunkter:<br>';
+            Object.keys(good_drying_days).forEach(function (key) {
+              var humidities = good_drying_days[key];
+              var totalHumidity = humidities.reduce(function (acc, h) {
+                return acc + h.humidity;
+              }, 0);
+              var avgHumidity = Math.round(totalHumidity / humidities.length);
+              result += key + ':\tGennemsnitlig luftfugtighed: ' + avgHumidity + '%<br>';
+            });
+            $('#result').html(result);
+          } else {
+            $('#result').html('Nej, Dårligt tørre vejr i de næste 7 dage.');
           }
         });
 
-        if (Object.keys(good_drying_days).length > 0) {
-          var result = 'Ja!, Men kun på disse dage og tidspunkter:<br>';
-          Object.keys(good_drying_days).forEach(function (key) {
-            var humidities = good_drying_days[key];
-            var totalHumidity = humidities.reduce(function (acc, h) {
-              return acc + h.humidity;
-            }, 0);
-            var avgHumidity = Math.round(totalHumidity / humidities.length);
-            result += key + ':\tGennemsnitlig luftfugtighed: ' + avgHumidity + '%<br>';
+        var url = 'https://nominatim.openstreetmap.org/reverse?format=json&lat=' + latitude + '&lon=' + longitude;
+        fetch(url)
+          .then(response => response.json())
+          .then(data => {
+            var cityName = null;
+            var address = data.address;
+            if (address.city) {
+              cityName = address.city;
+            } else if (address.town) {
+              cityName = address.town;
+            } else if (address.village) {
+              cityName = address.village;
+            } else if (address.hamlet) {
+              cityName = address.hamlet;
+            }
+            document.getElementById("cityName").innerHTML = "Din nuværende by er: " + cityName;
           });
-          $('#result').html(result);
-        } else {
-          $('#result').html('Nej, Dårligt tørre vejr i de næste 7 dage.');
-        }
       }
-      
-      // ... (samme som tidligere)
     </script>
   </head>
   <body onload="getLocation();">
