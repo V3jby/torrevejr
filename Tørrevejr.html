@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="UTF-8">
-    <title>Skal vasketøjet test ud?</title>
+    <title>Skal vasketøjet ud?</title>
     <style>
         body {
             font-size: 36px;
@@ -47,7 +47,6 @@
                 var forecast = data.list.slice(0, 24 * 5); // get the next 5 days of data
 
                 var good_drying_days = {};
-                var bad_drying_days = {};
 
                 forecast.forEach(function(item) {
                     var date = new Date(item.dt_txt);
@@ -68,80 +67,26 @@
                                 }
                             }
                         });
-                    } else {
-                        Object.keys(intervals).forEach(function(interval) {
-                            if (hour >= intervals[interval][0] && hour < intervals[interval][1]) {
-                                if (!bad_drying_days[day_name]) {
-                                    bad_drying_days[day_name] = {intervals: [], maxHumidity: humidity};
-                                }
-                                if (!bad_drying_days[day_name].intervals.includes(interval)) {
-                                    bad_drying_days[day_name].intervals.push(interval);
-                                    bad_drying_days[day_name].maxHumidity = Math.max(humidity, bad_drying_days[day_name].maxHumidity);
-                                }
-                            }
-                        });
                     }
                 });
 
-                var result = 'Skal vasketøjet ud?<br>';
-                Object.keys(good_drying_days).forEach(function(day_name) {
-                    var intervals = good_drying_days[day_name].intervals;
-                    var maxHumidity = good_drying_days[day_name].maxHumidity;
-                    if (intervals.length === 4) {
-                        result += day_name + ': Godt tørrevejr 8-22.<br>';
-                    } else {
-                        var times = consolidateIntervals(intervals);
-                        times.forEach(function(time) {
-                            result += day_name + ': Godt tørrevejr ' + time.start + '-' + time.end + '.<br>';
-                        });
+                // print out good drying days
+                console.log('Skal vasketøjet ud?');
+                Object.keys(good_drying_days).forEach(function(day) {
+                    if(good_drying_days[day].intervals.length > 0) {
+                        console.log(day + ': Godt tørrevejr i ' + good_drying_days[day].intervals.join(', '));
                     }
                 });
-                Object.keys(bad_drying_days).forEach(function(day_name) {
-                    if (!good_drying_days[day_name]) {
-                        result += day_name + ': Dårligt tørrevejr.<br>';
-                    }
-                });
-
-                document.getElementById("result").innerHTML = result;
-                document.getElementById("cityName").innerHTML = "Din nuværende by er: " + data.city.name;
+                console.log('\nDin nuværende by er: ' + data.city.name);
             });
         }
 
-        function consolidateIntervals(intervals) {
-            var times = {'Morgen': 8, 'Formiddag': 11, 'Eftermiddag': 14, 'Aften': 17};
-            var end_times = {'Morgen': 11, 'Formiddag': 14, 'Eftermiddag': 17, 'Aften': 22};
-            var output = [];
-            var start = null;
-            var end = null;
-            Object.keys(times).forEach(function(interval) {
-                if (intervals.includes(interval)) {
-                    if (start == null) {
-                        start = times[interval];
-                    }
-                    end = end_times[interval];
-                } else {
-                    if (start != null) {
-                        output.push({start: start, end: end});
-                        start = null;
-                        end = null;
-                    }
-                }
-            });
-            if (start != null) {
-                output.push({start: start, end: end});
-            }
-            return output;
-        }
-
-        $(document).ready(function() {
+        $(document).ready(function(){
             getLocation();
         });
     </script>
   </head>
   <body>
-    <h1 id="result">Afventer GPS Lokation...</h1>
-    <h2 id="cityName"></h2>
-    <h3 id="errorGPS"></h3>
-    <h2>test</h2>
+    <div id="errorGPS"></div>
   </body>
 </html>
