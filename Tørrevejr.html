@@ -3,131 +3,133 @@
   <head>
     <meta charset="UTF-8">
     <title>Skal vasketøjet ud?</title>
-    <style>
-      	body {
-        	font-size: 36px;
-	      }
-    </style>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script>
-		var intervals = [
-            {start: 8, end: 11, name: 'Formiddag'},
-            {start: 11, end: 14, name: 'Middag'},
-            {start: 14, end: 17, name: 'Eftermiddag'},
-            {start: 17, end: 22, name: 'Aften'}
-        ];
-	
-		function getLocation() {
-			if (navigator.geolocation) {
-				navigator.geolocation.getCurrentPosition(showPosition, showError);
-			} else { 
-				document.getElementById("errorGPS").innerHTML = "GPS Lokation er ikke tilgængelig via din browser.";
-			}
-		}
+  <style>
+    body {
+      font-size: 36px;
+    }
+  </style>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script>
+    function getLocation() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(showPosition, showError);
+      } else {
+        document.getElementById("errorGPS").innerHTML = "GPS Lokation er ikke tilgængelig via din browser.";
+      }
+    }
 
-		function showError(error) {
-			switch(error.code) {
-				case error.PERMISSION_DENIED:
-					document.getElementById("errorGPS").innerHTML = "Du skal acceptere at bruge GPS Data.";
-					break;
-				case error.POSITION_UNAVAILABLE:
-					document.getElementById("errorGPS").innerHTML = "Din lokation er ikke tilgængelig.";
-					break;
-				case error.TIMEOUT:
-					document.getElementById("errorGPS").innerHTML = "Det tog for lang tid med at finde din lokation.";
-					break;
-				case error.UNKNOWN_ERROR:
-					document.getElementById("errorGPS").innerHTML = "En ukendt fejl er opstået.";
-					break;
-			}
-		}
-        
-        function showPosition(position) {
-            var latitude = position.coords.latitude;
-            var longitude = position.coords.longitude;
-            var api_key = 'bb95120518eb14ab25ee3a89ad9769ec';
-            var api_url = 'https://api.openweathermap.org/data/2.5/forecast?lat=' + latitude + '&lon=' + longitude + '&appid=' + api_key;
+    function showError(error) {
+      switch(error.code) {
+        case error.PERMISSION_DENIED:
+          document.getElementById("errorGPS").innerHTML = "Du skal acceptere at bruge GPS Data.";
+          break;
+        case error.POSITION_UNAVAILABLE:
+          document.getElementById("errorGPS").innerHTML = "Din lokation er ikke tilgængelig.";
+          break;
+        case error.TIMEOUT:
+          document.getElementById("errorGPS").innerHTML = "Det tog for lang tid med at finde din lokation.";
+          break;
+        case error.UNKNOWN_ERROR:
+          document.getElementById("errorGPS").innerHTML = "En ukendt fejl er opstået.";
+          break;
+      }
+    }
 
-            $.getJSON(api_url, function(data) {
-                var days = ['Søndag', 'Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag'];
-                var today = new Date().getDay();
-                var forecast = data.list.slice(0, 24 * 3); // get the next 3 days of data
+    function showPosition(position) {
+      var latitude = position.coords.latitude;
+      var longitude = position.coords.longitude;
+      var api_key = 'bb95120518eb14ab25ee3a89ad9769ec';
+      var api_url = 'https://api.openweathermap.org/data/2.5/forecast?lat=' + latitude + '&lon=' + longitude + '&appid=' + api_key;
+      $.getJSON(api_url, function(data) {
+        var days = ['Søndag', 'Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag'];
+        var today = new Date().getDay();
+        var forecast = data.list.slice(0, 24 * 3); // get the next 3 days of data
 
-                var dayData = {};
+        var timeSlots = [{start: 8, end: 11}, {start: 11, end: 14}, {start: 14, end: 17}, {start: 17, end: 22}];
+        var dayData = {};
+        var prevDayName = '';
+        forecast.forEach(function(item) {
+          var date = new Date(item.dt_txt);
+          var hour = date.getHours();
+          var day_name = days[date.getDay()];
+          var humidity = item.main.humidity;
+          var weather = item.weather[0].main;
 
-                forecast.forEach(function(item) {
-                    var date = new Date(item.dt_txt);
-                    var day_name = days[date.getDay()];
-                    var humidity = item.main.humidity;
-                    var weather = item.weather[0].main;
-                    var hour = date.getHours();
-                    var interval = intervals.find(function(interval) { 
-                        return hour >= interval.start && hour < interval.end;
-                    });
-                    if (!interval) { // if hour is outside of 8-22
-                        return;
-                    }
-                    if (!dayData[day_name]) {
-                        dayData[day_name] = {goodIntervals: []};
-                    }
-                    if (weather != 'Rain' && humidity < 75) {
-                        dayData[day_name].goodIntervals.push(interval);
-                    } 
-                });
+          if (day_name !== prevDayName) {
+            dayData[day_name] = {
+              intervals: [],
+              isGoodDryingDay: true
+            };
+            prevDayName = day_name;
+          }
 
-                var result = '';
-                Object.keys(dayData).forEach(function(day_name) {
-                    var goodIntervals = dayData[day_name].goodIntervals;
-                    var mergedIntervals = [];
-
-                    goodIntervals.forEach(function(currentInterval) {
-                        if (mergedIntervals.length == 0) {
-                            mergedIntervals.push(currentInterval);
-                        } else {
-                            var lastMerged = mergedIntervals[mergedIntervals.length - 1];
-                            if (lastMerged.end == currentInterval.start) {
-                                lastMerged.end = currentInterval.end;
-                                lastMerged.name = lastMerged.start + '-' + lastMerged.end;
-                            } else {
-                                mergedIntervals.push({ ...currentInterval });
-                            }
-                        }
-                    });
-
-                    if (mergedIntervals.length == 1 && mergedIntervals[0].start == 8 && mergedIntervals[0].end == 22) {
-                        result += day_name + ': Godt tørrevejr hele dagen.<br>';
-                    } else if (mergedIntervals.length > 0) {
-                        var times = mergedIntervals.map(function(interval) { return interval.name; });
-                        result += day_name + ': Godt tørrevejr ' + times.join(' og ') + '.<br>';
-                    }
-                });
-                $('#result').html(result);
+          timeSlots.forEach(function(slot) {
+            if (hour >= slot.start && hour <= slot.end && (weather === 'Rain' || humidity >= 75)) {
+              dayData[day_name].isGoodDryingDay = false;
+            } 
+          });
+          
+          if (dayData[day_name].isGoodDryingDay) {
+            dayData[day_name].intervals.push({
+              start: hour,
+              end: hour + 3
             });
-            
-            var url = 'https://nominatim.openstreetmap.org/reverse?format=json&lat=' + latitude + '&lon=' + longitude;
-            fetch(url) 
-                .then(response => response.json())
-                .then(data => {
-                    var cityName = null;
-                    var address = data.address;
-                    if (address.city) {
-                        cityName = address.city;
-                    } else if (address.town) {
-                        cityName = address.town;
-                    } else if (address.village) {
-                        cityName = address.village;
-                    } else if (address.hamlet) {
-                        cityName = address.hamlet;
-                    }
-                    document.getElementById("cityName").innerHTML = "Din nuværende by er: " + cityName;
-                });
+          }
+        });
+
+        var output = '';
+        for (var day in dayData) {
+          if (dayData[day].isGoodDryingDay) {
+            output += day + ': Godt tørrevejr ';
+            var intervals = consolidateIntervals(dayData[day].intervals);
+            for (var i = 0; i < intervals.length; i++) {
+              output += intervals[i].start + '-' + intervals[i].end + (i < intervals.length - 1 ? ' og ' : '.');
+            }
+            output += '\n';
+          }
         }
-    </script>
+        document.getElementById('result').innerHTML = output;
+      });
+
+      var url = 'https://nominatim.openstreetmap.org/reverse?format=json&lat=' + latitude + '&lon=' + longitude;
+      fetch(url)
+        .then(response => response.json())
+        .then(data => {
+          var cityName = null;
+          var address = data.address;
+          if (address.city) {
+            cityName = address.city;
+          } else if (address.town) {
+            cityName = address.town;
+          } else if (address.village) {
+            cityName = address.village;
+          } else if (address.hamlet) {
+            cityName = address.hamlet;
+          }
+          document.getElementById("cityName").innerHTML = "Din nuværende by er: " + cityName;
+        });
+    }
+
+    function consolidateIntervals(intervals) {
+      var sortedIntervals = intervals.sort(function(a, b) {
+        return a.start - b.start;
+      });
+      var consolidatedIntervals = [sortedIntervals[0]];
+      for (var i = 1; i < sortedIntervals.length; i++) {
+        if (consolidatedIntervals[consolidatedIntervals.length - 1].end >= sortedIntervals[i].start) {
+          consolidatedIntervals[consolidatedIntervals.length - 1].end = Math.max(sortedIntervals[i].end, consolidatedIntervals[consolidatedIntervals.length - 1].end);
+        } else {
+          consolidatedIntervals.push(sortedIntervals[i]);
+        }
+      }
+      return consolidatedIntervals;
+    }
+  </script>
   </head>
   <body onload="getLocation();">
     <h1>Skal vasketøjet ud?</h1>
-	 <h2><p id="result">Afventer GPS Lokation...</p></h2>
-	  <h1><p id="errorGPS"></p></h1>
-	<p id="cityName"></p>
+    <p id="result">Afventer GPS Lokation...</p>
+    <p id="errorGPS"></p>
+    <p id="cityName"></p>
   </body>
 </html>
