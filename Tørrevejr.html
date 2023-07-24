@@ -5,7 +5,7 @@
     <title>Skal vasketøjet ud?</title>
     <style>
         body {
-            font-size: 36px;
+            font-size: 24px;
         }
     </style>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -49,44 +49,51 @@
                 var good_drying_days = {};
 
                 forecast.forEach(function(item) {
-                    var date = new Date(item.dt_txt);
-                    var day_name = days[date.getDay()];
-                    var hour = date.getHours();
-                    var humidity = item.main.humidity;
                     var weather = item.weather[0].main;
-
+                    var humidity = item.main.humidity;
+                    var dt_txt = item.dt_txt;
+                    var hour = new Date(dt_txt).getHours();
+                    var day = days[new Date(dt_txt).getDay()];
+                    
                     if (weather != 'Rain' && humidity < 75) {
-                        Object.keys(intervals).forEach(function(interval) {
+                        for (var interval in intervals) {
                             if (hour >= intervals[interval][0] && hour < intervals[interval][1]) {
-                                if (!good_drying_days[day_name]) {
-                                    good_drying_days[day_name] = {intervals: [], maxHumidity: humidity};
+                                if (!good_drying_days.hasOwnProperty(day)) {
+                                    good_drying_days[day] = [];
                                 }
-                                if (!good_drying_days[day_name].intervals.includes(interval)) {
-                                    good_drying_days[day_name].intervals.push(interval);
-                                    good_drying_days[day_name].maxHumidity = Math.max(humidity, good_drying_days[day_name].maxHumidity);
-                                }
+                                good_drying_days[day].push(interval);
                             }
-                        });
+                        }
                     }
                 });
+                
+                // Consolidating the time intervals
+                for (var day in good_drying_days) {
+                    var output = document.getElementById("output");
+                    var div = document.createElement("div");
+                    var day_intervals = good_drying_days[day].filter((v, i, a) => a.indexOf(v) === i); // removing duplicate intervals
+                    day_intervals.sort((a, b) => intervals[a][0] - intervals[b][0]); // sort the intervals
+                    var merged_intervals = [day_intervals[0]]; // initializing with the first interval
 
-                // print out good drying days
-                console.log('Skal vasketøjet ud?');
-                Object.keys(good_drying_days).forEach(function(day) {
-                    if(good_drying_days[day].intervals.length > 0) {
-                        console.log(day + ': Godt tørrevejr i ' + good_drying_days[day].intervals.join(', '));
+                    for (var i = 1; i < day_intervals.length; i++) {
+                        var last_interval = merged_intervals[merged_intervals.length - 1];
+                        var current_interval = day_intervals[i];
+                        if (intervals[last_interval][1] >= intervals[current_interval][0]) {
+                            merged_intervals[merged_intervals.length - 1] = current_interval; // replace the last interval
+                        } else {
+                            merged_intervals.push(current_interval); // add a new interval
+                        }
                     }
-                });
-                console.log('\nDin nuværende by er: ' + data.city.name);
+                    
+                    div.textContent = day + ": Godt tørrevejr " + merged_intervals.map(interval => intervals[interval].join('-')).join(' og ') + ".";
+                    output.appendChild(div);
+                }
             });
         }
-
-        $(document).ready(function(){
-            getLocation();
-        });
     </script>
   </head>
-  <body>
+  <body onload="getLocation()">
     <div id="errorGPS"></div>
+    <div id="output"></div>
   </body>
 </html>
