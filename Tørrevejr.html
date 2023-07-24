@@ -50,25 +50,28 @@
             console.log(data);
                 var good_drying_days = {};
                 var humidity_data = {};
-function processForecast(listItem) {
-    console.log('Processing forecast for', listItem);
+                      function processForecast(listItem) {
+                          if (!listItem) {
+                              console.log('Warning: listItem is undefined!');
+                              return;
+                          }
+                      
+                          console.log('Processing forecast for', listItem);
+                      
+                          var rain = listItem.rain?.['3h'] || listItem.rain?.['1h'] || 0;
+                          var date = new Date(listItem.dt * 1000);
+                          var day = days[date.getDay()];
+                          var dayIndex = (date.getDay() + 6) % 7;
+                      
+                          console.log('day:', day);
+                          console.log('dayIndex:', dayIndex);
+                      
+                          dailyRain[dayIndex] += rain;
+                      
+                          // Print out the current dailyRain array
+                          console.log('dailyRain:', dailyRain);
+                      }
 
-    // New log line
-    console.log('listItem:', listItem);
-
-    var rain = listItem.rain?.['3h'] || listItem.rain?.['1h'] || 0;
-    var date = new Date(listItem.dt * 1000);
-    var day = days[date.getDay()];
-    var dayIndex = (date.getDay() + 6) % 7;
-
-    console.log('day:', day);
-    console.log('dayIndex:', dayIndex);
-
-    dailyRain[dayIndex] += rain;
-
-    // Print out the current dailyRain array
-    console.log('dailyRain:', dailyRain);
-}
                   
                 forecast.forEach(function(item) {
                     var weather = item.weather[0].main;
