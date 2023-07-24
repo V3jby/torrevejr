@@ -3,37 +3,37 @@
   <head>
     <meta charset="UTF-8">
     <title>Skal vasketøjet ud?</title>
-	<style>
-      	body {
-        	font-size: 36px;
-		}
+    <style>
+        body {
+            font-size: 36px;
+        }
     </style>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-		function getLocation() {
-			if (navigator.geolocation) {
-				navigator.geolocation.getCurrentPosition(showPosition, showError);
-			} else {
-				document.getElementById("errorGPS").innerHTML = "GPS Lokation er ikke tilgængelig via din browser.";
-			}
-		}
+        function getLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(showPosition, showError);
+            } else {
+                document.getElementById("errorGPS").innerHTML = "GPS Lokation er ikke tilgængelig via din browser.";
+            }
+        }
 
-		function showError(error) {
-			switch(error.code) {
-				case error.PERMISSION_DENIED:
-					document.getElementById("errorGPS").innerHTML = "Du skal acceptere at bruge GPS Data.";
-					break;
-				case error.POSITION_UNAVAILABLE:
-					document.getElementById("errorGPS").innerHTML = "Din lokation er ikke tilgængelig.";
-					break;
-				case error.TIMEOUT:
-					document.getElementById("errorGPS").innerHTML = "Det tog for lang tid med at finde din lokation.";
-					break;
-				case error.UNKNOWN_ERROR:
-					document.getElementById("errorGPS").innerHTML = "En ukendt fejl er opstået.";
-					break;
-			}
-		}
+        function showError(error) {
+            switch(error.code) {
+                case error.PERMISSION_DENIED:
+                    document.getElementById("errorGPS").innerHTML = "Du skal acceptere at bruge GPS Data.";
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    document.getElementById("errorGPS").innerHTML = "Din lokation er ikke tilgængelig.";
+                    break;
+                case error.TIMEOUT:
+                    document.getElementById("errorGPS").innerHTML = "Det tog for lang tid med at finde din lokation.";
+                    break;
+                case error.UNKNOWN_ERROR:
+                    document.getElementById("errorGPS").innerHTML = "En ukendt fejl er opstået.";
+                    break;
+            }
+        }
 
         function showPosition(position) {
             var latitude = position.coords.latitude;
@@ -97,30 +97,14 @@
                     }
                 });
                 Object.keys(bad_drying_days).forEach(function(day_name) {
-                    var intervals = bad_drying_days[day_name].intervals;
-                    var maxHumidity = bad_drying_days[day_name].maxHumidity;
-                    result += day_name + ': Dårligt tørrevejr ' + intervals.join(', ') + ', Max Luftfugtighed: ' + maxHumidity + '%.<br>';
-                });
-                $('#result').html(result);
-            });
-
-            var url = 'https://nominatim.openstreetmap.org/reverse?format=json&lat=' + latitude + '&lon=' + longitude;
-            fetch(url) 
-                .then(response => response.json())
-                .then(data => {
-                    var cityName = null;
-                    var address = data.address;
-                    if (address.city) {
-                        cityName = address.city;
-                    } else if (address.town) {
-                        cityName = address.town;
-                    } else if (address.village) {
-                        cityName = address.village;
-                    } else if (address.hamlet) {
-                        cityName = address.hamlet;
+                    if (!good_drying_days[day_name]) {
+                        result += day_name + ': Dårligt tørrevejr.<br>';
                     }
-                    document.getElementById("cityName").innerHTML = "Din nuværende by er: " + cityName;
                 });
+
+                document.getElementById("result").innerHTML = result;
+                document.getElementById("cityName").innerHTML = "Din nuværende by er: " + data.city.name;
+            });
         }
 
         function consolidateIntervals(intervals) {
