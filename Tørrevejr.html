@@ -12,34 +12,27 @@
     <script>
         var hasProcessed = false;
 
-        function log(message) {
-            var logDiv = document.getElementById('log');
-            var p = document.createElement('p');
-            p.textContent = message;
-            logDiv.appendChild(p);
-        }
-
         function getLocation() {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(showPosition, showError);
             } else { 
-                log("GPS Lokation er ikke tilgængelig via din browser.");
+                document.getElementById("errorGPS").innerHTML = "GPS Lokation er ikke tilgængelig via din browser.";
             }
         }
 
         function showError(error) {
             switch(error.code) {
                 case error.PERMISSION_DENIED:
-                    log("Du skal acceptere at bruge GPS Data.");
+                    document.getElementById("errorGPS").innerHTML = "Du skal acceptere at bruge GPS Data.";
                     break;
                 case error.POSITION_UNAVAILABLE:
-                    log("Din lokation er ikke tilgængelig.");
+                    document.getElementById("errorGPS").innerHTML = "Din lokation er ikke tilgængelig.";
                     break;
                 case error.TIMEOUT:
-                    log("Det tog for lang tid med at finde din lokation.");
+                    document.getElementById("errorGPS").innerHTML = "Det tog for lang tid med at finde din lokation.";
                     break;
                 case error.UNKNOWN_ERROR:
-                    log("En ukendt fejl er opstået.");
+                    document.getElementById("errorGPS").innerHTML = "En ukendt fejl er opstået.";
                     break;
             }
         }
@@ -60,7 +53,7 @@
                     var days = ['Søndag', 'Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag'];
                     var forecast = data.list.slice(0, 24 * 7); // get the next 7 days of data
                     var location = data.city.name;
-                    log("Skal vasketøjet ud?");
+                    document.getElementById("heading").innerHTML = "Skal vasketøjet ud?";
                     var good_drying_days = {};
                     var humidity_data = {};
 
@@ -72,11 +65,6 @@
                         var dayIndex = new Date(dt_txt).getDay();
                         var day = days[dayIndex];
 
-                        log("Processing forecast for " + day);
-                        log("days array:" + days); // Tilføjer logging af 'days' arrayet
-                        log("day:" + day); // Tilføjer logging af 'day' variablen  
-                        log("dayIndex:" + dayIndex);
-                        
                         if (hour >= 8 && hour <= 22 && weather != 'Rain' && weather != 'Snow' && weather != 'Sleet' && humidity < 75) {
                             if (!good_drying_days.hasOwnProperty(day)) {
                                 good_drying_days[day] = [];
@@ -121,19 +109,20 @@
                             output.appendChild(div);
                         }
                     }
-                    log("Din nuværende by er: " + location + ".");
+                    document.getElementById("location").innerHTML = "Din nuværende by er: " + location + ".";
                 })
                 .fail(function(jqxhr, textStatus, error) {
                     var err = textStatus + ", " + error;
-                    log("Request Failed: " + err);
+                    document.getElementById("errorAPI").innerHTML = "Request Failed: " + err;
                 });
         }
     </script>
   </head>
   <body onload="getLocation()">
+    <div id="errorGPS"></div>
     <h1 id="heading"></h1>
     <div id="output"></div>
     <div id="location"></div>
-    <div id="log"></div>
+    <div id="errorAPI"></div>
   </body>
 </html>
