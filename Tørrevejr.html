@@ -62,9 +62,9 @@
                         if (hour >= start_hour && hour < end_hour) {
                             if (weather != 'Rain' && humidity < 75) {
                                 if (!good_drying_days[day_name]) {
-                                    good_drying_days[day_name] = [];
+                                    good_drying_days[day_name] = { intervals: [], date: date, humidity: humidity };
                                 }
-                                good_drying_days[day_name].push({interval: interval, date: date, humidity: humidity});
+                                good_drying_days[day_name].intervals.push(interval);
                             }
                         }
                     });
@@ -73,9 +73,13 @@
                 if (Object.keys(good_drying_days).length > 0) {
                     var result = 'Ja!, Men kun på disse dage og tidspunkter:<br>';
                     Object.keys(good_drying_days).forEach(function(day_name) {
-                        good_drying_days[day_name].forEach(function(info) {
-                            result += day_name + ', ' + info.interval + '\t(' + formatDate(info.date) + '):\t' + info.humidity + '% Luftfugtighed<br>';
-                        });
+                        if (good_drying_days[day_name].intervals.length == 4) {
+                            result += day_name + ', hele dagen\t(' + formatDate(good_drying_days[day_name].date) + '):\t' + good_drying_days[day_name].humidity + '% Luftfugtighed<br>';
+                        } else {
+                            good_drying_days[day_name].intervals.forEach(function(interval) {
+                                result += day_name + ', ' + interval + '\t(' + formatDate(good_drying_days[day_name].date) + '):\t' + good_drying_days[day_name].humidity + '% Luftfugtighed<br>';
+                            });
+                        }
                     });
                     $('#result').html(result);
                 } else {
@@ -94,27 +98,4 @@
                     } else if (address.town) {
                         cityName = address.town;
                     } else if (address.village) {
-                        cityName = address.village;
-                    } else if (address.hamlet) {
-                        cityName = address.hamlet;
-                    }
-                    document.getElementById("cityName").innerHTML = "Din nuværende by er: " + cityName;
-                });
-        }
-
-        function formatDate(date) {
-            var day = date.getDate();
-            var month = date.getMonth() + 1;
-            var year = date.getFullYear();
-            return day + '.' + month + '.' + year;
-        }
-    </script>
-  </head>
-  <body onload="getLocation();">
-    <h1>Skal vasketøjet ud?</h1>
-    <h2><p id="result">Afventer GPS Lokation...</p></h2>
-    <h1><p id="errorGPS"></p></h1>
-    
-    <p id="cityName"></p>
-  </body>
-</html>
+                        cityName =
