@@ -3,10 +3,10 @@
   <head>
     <meta charset="UTF-8">
     <title>Skal vasketøjet ud?</title>
-	<style>
-      	body {
-        	font-size: 36px;
-	}
+    <style>
+        body {
+            font-size: 36px;
+        }
     </style>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
@@ -45,46 +45,44 @@
                 var days = ['Søndag', 'Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag'];
                 var forecast = data.list.slice(0, 24 * 7); // get the next 7 days of data
 
+                var good_drying_intervals = { 'formiddagen': [8, 11], 'middag': [11, 14], 'eftermiddag': [14, 17], 'aften': [17, 22] };
                 var good_drying_days = {};
+
                 forecast.forEach(function(item) {
                     var date = new Date(item.dt_txt);
                     var day_name = days[date.getDay()];
+                    var hour = date.getHours();
                     var humidity = item.main.humidity;
                     var weather = item.weather[0].main;
-                    var hour = date.getHours();
-                    
-                    if (hour >= 8 && hour <= 22) {
-                        if (!good_drying_days[day_name]) {
-                            good_drying_days[day_name] = {conditions: [], maxHumidity: 0};
+
+                    Object.keys(good_drying_intervals).forEach(function(interval) {
+                        var start_hour = good_drying_intervals[interval][0];
+                        var end_hour = good_drying_intervals[interval][1];
+                        
+                        if (hour >= start_hour && hour < end_hour) {
+                            if (weather != 'Rain' && humidity < 75) {
+                                if (!good_drying_days[day_name]) {
+                                    good_drying_days[day_name] = [];
+                                }
+                                good_drying_days[day_name].push({interval: interval, date: date, humidity: humidity});
+                            }
                         }
-                        if (weather != 'Rain' && humidity < 75) {
-                            good_drying_days[day_name].conditions.push(true);
-                        } else {
-                            good_drying_days[day_name].conditions.push(false);
-                        }
-                        if (humidity > good_drying_days[day_name].maxHumidity) {
-                            good_drying_days[day_name].maxHumidity = humidity;
-                        }
-                    }
+                    });
                 });
 
-                var result = '';
-                Object.keys(good_drying_days).forEach(function(day_name) {
-                    if (good_drying_days[day_name].conditions.every(val => val === true)) {
-                        if (result === '') {
-                            result = 'Ja!, Men kun på disse dage:<br>';
-                        }
-                        result += day_name + ':\t' + good_drying_days[day_name].maxHumidity + '% Luftfugtighed<br>';
-                    }
-                });
-
-                if (result === '') {
-                    result = 'Nej, Dårligt tørre vejr i de næste 7 dage.';
+                if (Object.keys(good_drying_days).length > 0) {
+                    var result = 'Ja!, Men kun på disse dage og tidspunkter:<br>';
+                    Object.keys(good_drying_days).forEach(function(day_name) {
+                        good_drying_days[day_name].forEach(function(info) {
+                            result += day_name + ', ' + info.interval + '\t(' + formatDate(info.date) + '):\t' + info.humidity + '% Luftfugtighed<br>';
+                        });
+                    });
+                    $('#result').html(result);
+                } else {
+                    $('#result').html('Nej, Dårligt tørre vejr i de næste 7 dage.');
                 }
-                
-                $('#result').html(result);
             });
-            
+
             var url = 'https://nominatim.openstreetmap.org/reverse?format=json&lat=' + latitude + '&lon=' + longitude;
             fetch(url)
                 .then(response => response.json())
@@ -114,9 +112,9 @@
   </head>
   <body onload="getLocation();">
     <h1>Skal vasketøjet ud?</h1>
-	 <h2><p id="result">Afventer GPS Lokation...</p></h2>
-	  <h1><p id="errorGPS"></p></h1>
-	  
-	<p id="cityName"></p>
+    <h2><p id="result">Afventer GPS Lokation...</p></h2>
+    <h1><p id="errorGPS"></p></h1>
+    
+    <p id="cityName"></p>
   </body>
 </html>
