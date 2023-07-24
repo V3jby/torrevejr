@@ -47,13 +47,14 @@
                 var forecast = data.list.slice(0, 24 * 7); // get the next 7 days of data
                 var location = data.city.name;
                 document.getElementById("heading").innerHTML = "Skal vasketøjet ud?";
-
+            console.log(data);
                 var good_drying_days = {};
                 var humidity_data = {};
 
                 forecast.forEach(function(item) {
                     var weather = item.weather[0].main;
                     var humidity = item.main.humidity;
+                  console.log("Processing forecast for " + day);
                     var dt_txt = item.dt_txt;
                     var hour = new Date(dt_txt).getHours();
                     var day = days[new Date(dt_txt).getDay()];
