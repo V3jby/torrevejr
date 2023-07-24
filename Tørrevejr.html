@@ -68,30 +68,22 @@
                         return;
                     }
                     if (!dayData[day_name]) {
-                        dayData[day_name] = {goodIntervals: [], badIntervals: []};
+                        dayData[day_name] = {goodIntervals: []};
                     }
                     if (weather != 'Rain' && humidity < 75) {
                         if (!dayData[day_name].goodIntervals.includes(interval.name)) {
                             dayData[day_name].goodIntervals.push(interval.name);
                         }
-                    } else {
-                        if (!dayData[day_name].badIntervals.includes(interval.name)) {
-                            dayData[day_name].badIntervals.push(interval.name);
-                        }
-                    }
+                    } 
                 });
 
                 var result = '';
                 Object.keys(dayData).forEach(function(day_name) {
                     var goodIntervals = dayData[day_name].goodIntervals;
-                    var badIntervals = dayData[day_name].badIntervals;
                     if (goodIntervals.length === 4) {
                         result += day_name + ': Godt tørrevejr hele dagen.<br>';
                     } else if (goodIntervals.length > 0) {
                         result += day_name + ': Godt tørrevejr om ' + goodIntervals.join(', ') + '.<br>';
-                    }
-                    if (badIntervals.length > 0) {
-                        result += day_name + ': Dårligt tørrevejr om ' + badIntervals.join(', ') + '.<br>';
                     }
                 });
                 $('#result').html(result);
