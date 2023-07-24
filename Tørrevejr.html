@@ -10,33 +10,31 @@
     </style>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-	
-	
-		function getLocation() {
-			if (navigator.geolocation) {
-				navigator.geolocation.getCurrentPosition(showPosition, showError);
-			} else {
-				document.getElementById("errorGPS").innerHTML = "GPS Lokation er ikke tilgængelig via din browser.";
-			}
-		}
+        function getLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(showPosition, showError);
+            } else {
+                document.getElementById("errorGPS").innerHTML = "GPS Lokation er ikke tilgængelig via din browser.";
+            }
+        }
 
-		function showError(error) {
-			switch(error.code) {
-				case error.PERMISSION_DENIED:
-					document.getElementById("errorGPS").innerHTML = "Du skal acceptere at bruge GPS Data.";
-					break;
-				case error.POSITION_UNAVAILABLE:
-					document.getElementById("errorGPS").innerHTML = "Din lokation er ikke tilgængelig.";
-					break;
-				case error.TIMEOUT:
-					document.getElementById("errorGPS").innerHTML = "Det tog for lang tid med at finde din lokation.";
-					break;
-				case error.UNKNOWN_ERROR:
-					document.getElementById("errorGPS").innerHTML = "En ukendt fejl er opstået.";
-					break;
-			}
-		}
-        
+        function showError(error) {
+            switch(error.code) {
+                case error.PERMISSION_DENIED:
+                    document.getElementById("errorGPS").innerHTML = "Du skal acceptere at bruge GPS Data.";
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    document.getElementById("errorGPS").innerHTML = "Din lokation er ikke tilgængelig.";
+                    break;
+                case error.TIMEOUT:
+                    document.getElementById("errorGPS").innerHTML = "Det tog for lang tid med at finde din lokation.";
+                    break;
+                case error.UNKNOWN_ERROR:
+                    document.getElementById("errorGPS").innerHTML = "En ukendt fejl er opstået.";
+                    break;
+            }
+        }
+
         function showPosition(position) {
             var latitude = position.coords.latitude;
             var longitude = position.coords.longitude;
@@ -45,7 +43,6 @@
 
             $.getJSON(api_url, function(data) {
                 var days = ['Søndag', 'Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag'];
-                var today = new Date().getDay();
                 var forecast = data.list.slice(0, 24 * 3); // get the next 3 days of data
 
                 var good_drying_days = {};
@@ -54,8 +51,9 @@
                     var day_name = days[date.getDay()];
                     var humidity = item.main.humidity;
                     var weather = item.weather[0].main;
-
-                    if (weather != 'Rain' && humidity < 75) {
+                    var hour = date.getHours();
+                    
+                    if (weather != 'Rain' && humidity < 75 && hour >= 8 && hour <= 22) {
                         if (!good_drying_days[day_name]) {
                             good_drying_days[day_name] = [];
                         }
@@ -72,12 +70,12 @@
                     });
                     $('#result').html(result);
                 } else {
-                    $('#result').html('Nej, Dårligt tørre vejr i de næste 7 dage.');
+                    $('#result').html('Nej, Dårligt tørre vejr i de næste 3 dage.');
                 }
             });
             
             var url = 'https://nominatim.openstreetmap.org/reverse?format=json&lat=' + latitude + '&lon=' + longitude;
-            fetch(url) 
+            fetch(url)
                 .then(response => response.json())
                 .then(data => {
                     var cityName = null;
@@ -94,8 +92,6 @@
                     document.getElementById("cityName").innerHTML = "Din nuværende by er: " + cityName;
                 });
         }
-        
-
 
         function formatDate(date) {
             var day = date.getDate();
