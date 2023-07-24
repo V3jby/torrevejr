@@ -41,7 +41,8 @@
             var api_key = 'bb95120518eb14ab25ee3a89ad9769ec';
             var api_url = 'https://api.openweathermap.org/data/2.5/forecast?lat=' + latitude + '&lon=' + longitude + '&appid=' + api_key;
 
-            $.getJSON(api_url, function(data) {
+            $.getJSON(api_url)
+                .done(function(data) {
                 var days = ['Søndag', 'Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag'];
                 var forecast = data.list.slice(0, 24 * 7); // get the next 7 days of data
                 var location = data.city.name;
@@ -103,6 +104,12 @@
                 }
                 document.getElementById("location").innerHTML = "Din nuværende by er: " + location + ".";
             });
+                })
+                .fail(function(jqxhr, textStatus, error) {
+                    var err = textStatus + ", " + error;
+                    console.log("Request Failed: " + err);
+                    document.getElementById("errorAPI").innerHTML = "Request Failed: " + err;
+                });
         }
     </script>
   </head>
@@ -111,5 +118,6 @@
     <h1 id="heading"></h1>
     <div id="output"></div>
     <div id="location"></div>
+    <div id="errorAPI"></div>
   </body>
 </html>
