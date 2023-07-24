@@ -88,6 +88,7 @@
                     });
 
                     // Consolidating the time intervals
+                    var hasGoodDays = false;
                     for (var day in good_drying_days) {
                         var output = document.getElementById("output");
                         var div = document.createElement("div");
@@ -104,6 +105,7 @@
                             } else {
                                 if (end_hour - start_hour >= 3) {
                                     consolidated_hours.push([start_hour, end_hour]); // add the current interval if it's at least 3 hours long
+                                    hasGoodDays = true;
                                 }
                                 start_hour = day_hours[i];
                                 end_hour = day_hours[i];
@@ -112,13 +114,20 @@
 
                         if (end_hour - start_hour >= 3) {
                             consolidated_hours.push([start_hour, end_hour]); // add the last interval if it's at least 3 hours long
+                            hasGoodDays = true;
                         }
 
-                        if (consolidated_hours.length > 0) {
+                        if (hasGoodDays && consolidated_hours.length > 0) {
                             var intervals = consolidated_hours.map(hours => hours.join('-')).join(', ');
                             div.textContent = day + ": " + intervals;
                             output.appendChild(div);
                         }
+                    }
+
+                    if (!hasGoodDays) {
+                        var noGoodDaysMessage = document.createElement("div");
+                        noGoodDaysMessage.textContent = "Der er desværre ingen gode dage til at tørre vasketøjet.";
+                        output.appendChild(noGoodDaysMessage);
                     }
                     document.getElementById("location").innerHTML = "Din nuværende by er: " + location + ".";
                 })
