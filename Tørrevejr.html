@@ -89,7 +89,7 @@
                                 lastMerged.end = currentInterval.end;
                                 lastMerged.name = lastMerged.start + '-' + lastMerged.end;
                             } else {
-                                mergedIntervals.push(currentInterval);
+                                mergedIntervals.push({ ...currentInterval });
                             }
                         }
                     });
