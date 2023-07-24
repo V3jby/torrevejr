@@ -34,87 +34,82 @@
                     break;
             }
         }
-function showPosition(position) {
-    var latitude = position.coords.latitude;
-    var longitude = position.coords.longitude;
-    var api_key = 'bb95120518eb14ab25ee3a89ad9769ec';
-    var api_url = 'https://api.openweathermap.org/data/2.5/forecast?lat=' + latitude + '&lon=' + longitude + '&appid=' + api_key;
 
-    $.getJSON(api_url)
-        .done(function(data) {
-            var days = ['Søndag', 'Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag'];
-            var forecast = data.list.slice(0, 24 * 7); // get the next 7 days of data
-            var location = data.city.name;
-            document.getElementById("heading").innerHTML = "Skal vasketøjet ud?";
-            console.log(data);
-            var good_drying_days = {};
-            var humidity_data = {};
-            
-            forecast.forEach(function(item) {
-                var weather = item.weather[0].main;
-                var humidity = item.main.humidity;
-                var dt_txt = item.dt_txt;
-                var hour = new Date(dt_txt).getHours();
-                var dayIndex = new Date(dt_txt).getDay();
-                var day = days[dayIndex];
+        function showPosition(position) {
+            var latitude = position.coords.latitude;
+            var longitude = position.coords.longitude;
+            var api_key = 'bb95120518eb14ab25ee3a89ad9769ec';
+            var api_url = 'https://api.openweathermap.org/data/2.5/forecast?lat=' + latitude + '&lon=' + longitude + '&appid=' + api_key;
 
-                console.log("Processing forecast for " + day);
-                console.log("days array:", days); // Tilføjer logging af 'days' arrayet
-                console.log("day:", day); // Tilføjer logging af 'day' variablen  
-                console.log("dayIndex:", dayIndex);
-                
-                if (hour >= 8 && hour <= 22 && weather != 'Rain' && weather != 'Snow' && weather != 'Sleet' && humidity < 75) {
-                    if (!good_drying_days.hasOwnProperty(day)) {
-                        good_drying_days[day] = [];
-                        humidity_data[day] = [];
-                    }
-                    good_drying_days[day].push(hour);
-                    humidity_data[day].push(humidity);
-                }
-            });
+            $.getJSON(api_url)
+                .done(function(data) {
+                    var days = ['Søndag', 'Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag'];
+                    var forecast = data.list.slice(0, 24 * 7); // get the next 7 days of data
+                    var location = data.city.name;
+                    document.getElementById("heading").innerHTML = "Skal vasketøjet ud?";
+                    console.log(data);
+                    var good_drying_days = {};
+                    var humidity_data = {};
+                    
+                    forecast.forEach(function(item) {
+                        var weather = item.weather[0].main;
+                        var humidity = item.main.humidity;
+                        var dt_txt = item.dt_txt;
+                        var hour = new Date(dt_txt).getHours();
+                        var dayIndex = new Date(dt_txt).getDay();
+                        var day = days[dayIndex];
 
-            // Consolidating the time intervals
-            for (var day in good_drying_days) {
-                var output = document.getElementById("output");
-                var div = document.createElement("div");
-                var day_hours = good_drying_days[day];
-                day_hours.sort((a, b) => a - b); // sort the hours
-
-                var consolidated_hours = [];
-                var start_hour = day_hours[0];
-                var end_hour = day_hours[0];
-
-                for (var i = 1; i < day_hours.length; i++) {
-                    if (day_hours[i] == end_hour + 1) {
-                        end_hour = day_hours[i]; // extend the current interval
-                    } else {
-                        if (end_hour - start_hour >= 2) {
-                            consolidated_hours.push([start_hour, end_hour + 1]); // add the current interval if it's at least 3 hours long
+                        console.log("Processing forecast for " + day);
+                        console.log("days array:", days); // Tilføjer logging af 'days' arrayet
+                        console.log("day:", day); // Tilføjer logging af 'day' variablen  
+                        console.log("dayIndex:", dayIndex);
+                        
+                        if (hour >= 8 && hour <= 22 && weather != 'Rain' && weather != 'Snow' && weather != 'Sleet' && humidity < 75) {
+                            if (!good_drying_days.hasOwnProperty(day)) {
+                                good_drying_days[day] = [];
+                                humidity_data[day] = [];
+                            }
+                            good_drying_days[day].push(hour);
+                            humidity_data[day].push(humidity);
                         }
-                        start_hour = day_hours[i];
-                        end_hour = day_hours[i];
+                    });
+
+                    // Consolidating the time intervals
+                    for (var day in good_drying_days) {
+                        var output = document.getElementById("output");
+                        var div = document.createElement("div");
+                        var day_hours = good_drying_days[day];
+                        day_hours.sort((a, b) => a - b); // sort the hours
+
+                        var consolidated_hours = [];
+                        var start_hour = day_hours[0];
+                        var end_hour = day_hours[0];
+
+                        for (var i = 1; i < day_hours.length; i++) {
+                            if (day_hours[i] == end_hour + 1) {
+                                end_hour = day_hours[i]; // extend the current interval
+                            } else {
+                                if (end_hour - start_hour >= 2) {
+                                    consolidated_hours.push([start_hour, end_hour + 1]); // add the current interval if it's at least 3 hours long
+                                }
+                                start_hour = day_hours[i];
+                                end_hour = day_hours[i];
+                            }
+                        }
+
+                        if (end_hour - start_hour >= 2) {
+                            consolidated_hours.push([start_hour, end_hour + 1]); // add the last interval if it's at least 3 hours long
+                        }
+
+                        var average_humidity = Math.round(humidity_data[day].reduce((a, b) => a + b) / humidity_data[day].length);
+                        
+                        if (consolidated_hours.length > 0) {
+                            div.textContent = day + ": " + (consolidated_hours.length == 1 && consolidated_hours[0][0] == 8 && consolidated_hours[0][1] == 23 ? "hele dagen" : consolidated_hours.map(hours => hours.join('-')).join(', ')) + " (Gennemsnitlig luftfugtighed: " + average_humidity + "%).";
+                            output.appendChild(div);
+                        }
                     }
-                }
-
-                if (end_hour - start_hour >= 2) {
-                    consolidated_hours.push([start_hour, end_hour + 1]); // add the last interval if it's at least 3 hours long
-                }
-
-                var average_humidity = Math.round(humidity_data[day].reduce((a, b) => a + b) / humidity_data[day].length);
-                
-                if (consolidated_hours.length > 0) {
-                    div.textContent = day + ": " + (consolidated_hours.length == 1 && consolidated_hours[0][0] == 8 && consolidated_hours[0][1] == 23 ? "hele dagen" : consolidated_hours.map(hours => hours.join('-')).join(', ')) + " (Gennemsnitlig luftfugtighed: " + average_humidity + "%).";
-                    output.appendChild(div);
-                }
-            }
-            document.getElementById("location").innerHTML = "Din nuværende by er: " + location + ".";
-        })
-        .fail(function(jqxhr, textStatus, error) {
-            var err = textStatus + ", " + error;
-            console.log("Request Failed: " + err);
-            document.getElementById("errorAPI").innerHTML = "Request Failed: " + err;
-        });
-}
+                    document.getElementById("location").innerHTML = "Din nuværende by er: " + location + ".";
+                })
                 .fail(function(jqxhr, textStatus, error) {
                     var err = textStatus + ", " + error;
                     console.log("Request Failed: " + err);
