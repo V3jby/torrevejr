@@ -15,29 +15,18 @@
             navigator.geolocation.getCurrentPosition(function(position) {
                 var lat = position.coords.latitude;
                 var lon = position.coords.longitude;
-                var api_url = `https://api.weatherapi.com/v1/forecast.json?key=${api_key}&q=${lat},${lon}&days=7`;
+                var api_url = `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${api_key}`;
 
                 $.getJSON(api_url, function(data) {
                     console.log(data);  // For debugging purpose
-                    var forecastDays = data.forecast.forecastday;
-
-                    forecastDays.forEach(day => {
-                        var dayName = new Date(day.date).toLocaleDateString('da-DK', { weekday: 'long' });
-                        var dayIntervals = getGoodWeatherIntervals(day);
-
-                        if(dayIntervals.length > 0){
-                            $('#weatherReport').append('<p>' + dayName + ': ' + consolidateIntervals(dayIntervals).join(' og ') + ' (Gennemsnitlig luftfugtighed: ' + Math.round(averageHumidity(dayIntervals)) + '%).' + '</p>');
-                        }
-                    });
-
-                    $('#weatherReport').append('<p>Din nuværende by er: ' + data.location.name + '.</p>');
+                    // Update this section according to the response format of OpenWeatherMap API
                 });
             });
         } else {
             console.log("Geolocation is not supported by this browser.");
         }
 
-        // Remaining part of the JavaScript code
+        // Update this section according to the response format of OpenWeatherMap API
     </script>
 </body>
 </html>
