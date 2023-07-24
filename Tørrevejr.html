@@ -61,7 +61,7 @@
                 if (!good_drying_days[key]) {
                   good_drying_days[key] = [];
                 }
-                good_drying_days[key].push({ date: date, humidity: humidity });
+                good_drying_days[key].push({ date: date, humidity: humidity, interval: interval.start + '-' + interval.end });
               }
             }
           });
@@ -69,32 +69,27 @@
           if (Object.keys(good_drying_days).length > 0) {
             var result = 'Ja!, Men kun på disse dage og tidspunkter:<br>';
             Object.keys(good_drying_days).forEach(function (key) {
-              var humidities = good_drying_days[key];
-              var totalHumidity = humidities.reduce(function (acc, h) {
-                return acc + h.humidity;
-              }, 0);
-              var avgHumidity = Math.round(totalHumidity / humidities.length);
-              result += key + ' - ';
-
-              var consolidatedIntervals = [];
-
-              timeIntervals.forEach(function (interval) {
-                var intervalHumidities = humidities.filter(function (h) {
-                  var hour = h.date.getHours();
-                  return hour >= interval.start && hour < interval.end;
-                });
-
-                if (intervalHumidities.length > 0) {
-                  var intervalTotalHumidity = intervalHumidities.reduce(function (acc, h) {
-                    return acc + h.humidity;
-                  }, 0);
-                  var intervalAvgHumidity = Math.round(intervalTotalHumidity / intervalHumidities.length);
-                  consolidatedIntervals.push(interval.start + '-' + interval.end + ': Gennemsnitlig luftfugtighed: ' + intervalAvgHumidity + '%');
+              var consolidatedIntervals = {};
+              good_drying_days[key].forEach(function (entry) {
+                if (!consolidatedIntervals[entry.interval]) {
+                  consolidatedIntervals[entry.interval] = [];
                 }
+                consolidatedIntervals[entry.interval].push(entry.humidity);
               });
 
-              result += consolidatedIntervals.join(', ') + '<br>';
+              var consolidatedResult = '';
+              Object.keys(consolidatedIntervals).forEach(function (interval) {
+                var humidities = consolidatedIntervals[interval];
+                var totalHumidity = humidities.reduce(function (acc, h) {
+                  return acc + h;
+                }, 0);
+                var avgHumidity = Math.round(totalHumidity / humidities.length);
+                consolidatedResult += interval + ': Gennemsnitlig luftfugtighed: ' + avgHumidity + '%, ';
+              });
+
+              result += key + ' - ' + consolidatedResult.slice(0, -2) + '<br>';
             });
+
             $('#result').html(result);
           } else {
             $('#result').html('Nej, Dårligt tørre vejr i de næste 7 dage.');
