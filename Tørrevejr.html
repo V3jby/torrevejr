@@ -98,4 +98,27 @@
                     } else if (address.town) {
                         cityName = address.town;
                     } else if (address.village) {
-                        cityName =
+                        cityName = address.village;
+                    } else if (address.hamlet) {
+                        cityName = address.hamlet;
+                    }
+                    document.getElementById("cityName").innerHTML = "Din nuværende by er: " + cityName;
+                });
+        }
+
+        function formatDate(date) {
+            var day = date.getDate();
+            var month = date.getMonth() + 1;
+            var year = date.getFullYear();
+            return day + '.' + month + '.' + year;
+        }
+    </script>
+  </head>
+  <body onload="getLocation();">
+    <h1>Skal vasketøjet ud?</h1>
+    <h2><p id="result">Afventer GPS Lokation...</p></h2>
+    <h1><p id="errorGPS"></p></h1>
+    
+    <p id="cityName"></p>
+  </body>
+</html>
