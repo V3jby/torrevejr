@@ -10,27 +10,34 @@
     </style>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
+        function log(message) {
+            var logDiv = document.getElementById('log');
+            var p = document.createElement('p');
+            p.textContent = message;
+            logDiv.appendChild(p);
+        }
+
         function getLocation() {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(showPosition, showError);
             } else { 
-                document.getElementById("errorGPS").innerHTML = "GPS Lokation er ikke tilgængelig via din browser.";
+                log("GPS Lokation er ikke tilgængelig via din browser.");
             }
         }
 
         function showError(error) {
             switch(error.code) {
                 case error.PERMISSION_DENIED:
-                    document.getElementById("errorGPS").innerHTML = "Du skal acceptere at bruge GPS Data.";
+                    log("Du skal acceptere at bruge GPS Data.");
                     break;
                 case error.POSITION_UNAVAILABLE:
-                    document.getElementById("errorGPS").innerHTML = "Din lokation er ikke tilgængelig.";
+                    log("Din lokation er ikke tilgængelig.");
                     break;
                 case error.TIMEOUT:
-                    document.getElementById("errorGPS").innerHTML = "Det tog for lang tid med at finde din lokation.";
+                    log("Det tog for lang tid med at finde din lokation.");
                     break;
                 case error.UNKNOWN_ERROR:
-                    document.getElementById("errorGPS").innerHTML = "En ukendt fejl er opstået.";
+                    log("En ukendt fejl er opstået.");
                     break;
             }
         }
@@ -46,11 +53,10 @@
                     var days = ['Søndag', 'Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag'];
                     var forecast = data.list.slice(0, 24 * 7); // get the next 7 days of data
                     var location = data.city.name;
-                    document.getElementById("heading").innerHTML = "Skal vasketøjet ud?";
-                    console.log(data);
+                    log("Skal vasketøjet ud?");
                     var good_drying_days = {};
                     var humidity_data = {};
-                    
+
                     forecast.forEach(function(item) {
                         var weather = item.weather[0].main;
                         var humidity = item.main.humidity;
@@ -59,10 +65,10 @@
                         var dayIndex = new Date(dt_txt).getDay();
                         var day = days[dayIndex];
 
-                        console.log("Processing forecast for " + day);
-                        console.log("days array:", days); // Tilføjer logging af 'days' arrayet
-                        console.log("day:", day); // Tilføjer logging af 'day' variablen  
-                        console.log("dayIndex:", dayIndex);
+                        log("Processing forecast for " + day);
+                        log("days array:" + days); // Tilføjer logging af 'days' arrayet
+                        log("day:" + day); // Tilføjer logging af 'day' variablen  
+                        log("dayIndex:" + dayIndex);
                         
                         if (hour >= 8 && hour <= 22 && weather != 'Rain' && weather != 'Snow' && weather != 'Sleet' && humidity < 75) {
                             if (!good_drying_days.hasOwnProperty(day)) {
@@ -108,21 +114,19 @@
                             output.appendChild(div);
                         }
                     }
-                    document.getElementById("location").innerHTML = "Din nuværende by er: " + location + ".";
+                    log("Din nuværende by er: " + location + ".");
                 })
                 .fail(function(jqxhr, textStatus, error) {
                     var err = textStatus + ", " + error;
-                    console.log("Request Failed: " + err);
-                    document.getElementById("errorAPI").innerHTML = "Request Failed: " + err;
+                    log("Request Failed: " + err);
                 });
         }
     </script>
   </head>
   <body onload="getLocation()">
-    <div id="errorGPS"></div>
     <h1 id="heading"></h1>
     <div id="output"></div>
     <div id="location"></div>
-    <div id="errorAPI"></div>
+    <div id="log"></div>
   </body>
 </html>
