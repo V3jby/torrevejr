@@ -49,35 +49,12 @@
                     document.getElementById("heading").innerHTML = "Skal vasketøjet ud?";
                     var good_drying_days = {};
 
-                    function processForecast(listItem) {
-                        if (!listItem) {
-                            console.log('Warning: listItem is undefined!');
-                            return;
-                        }
-
-                        console.log('Processing forecast for', listItem);
-
-                        var rain = listItem.rain?.['3h'] || listItem.rain?.['1h'] || 0;
-                        var date = new Date(listItem.dt * 1000);
-                        var day = days[date.getDay()];
-                        var dayIndex = (date.getDay() + 6) % 7;
-
-                        console.log('day:', day);
-                        console.log('dayIndex:', dayIndex);
-
-                        dailyRain[dayIndex] += rain;
-
-                        // Print out the current dailyRain array
-                        console.log('dailyRain:', dailyRain);
-                    }
-
                     forecast.forEach(function(item) {
                         var weather = item.weather[0].main;
                         var humidity = item.main.humidity;
                         var dt_txt = item.dt_txt;
                         var hour = new Date(dt_txt).getHours();
                         var day = days[new Date(dt_txt).getDay()];
-                        var dayIndex = new Date(dt_txt).getDay();
 
                         if (hour >= 8 && hour <= 22 && weather != 'Rain' && weather != 'Snow' && weather != 'Sleet' && humidity < 75) {
                             if (!good_drying_days.hasOwnProperty(day)) {
@@ -87,11 +64,10 @@
                         }
                     });
 
-                    // Consolidating the time intervals
+                    var output = document.getElementById("output");
                     var hasGoodDays = false;
+
                     for (var day in good_drying_days) {
-                        var output = document.getElementById("output");
-                        var div = document.createElement("div");
                         var day_hours = good_drying_days[day];
                         day_hours.sort((a, b) => a - b); // sort the hours
 
@@ -119,7 +95,18 @@
 
                         if (hasGoodDays && consolidated_hours.length > 0) {
                             var intervals = consolidated_hours.map(hours => hours.join('-')).join(', ');
-                            div.textContent = day + ": " + intervals;
+                            var averageHumidity = consolidated_hours.reduce((sum, hours) => {
+                                var startIdx = hours[0] - 8;
+                                var endIdx = hours[1] - 8;
+                                var sumHumidity = 0;
+                                for (var i = startIdx; i <= endIdx; i++) {
+                                    sumHumidity += forecast[i].main.humidity;
+                                }
+                                return sum + sumHumidity / (endIdx - startIdx + 1);
+                            }, 0) / consolidated_hours.length;
+                            averageHumidity = averageHumidity.toFixed(2);
+                            var div = document.createElement("div");
+                            div.textContent = day + ": " + intervals + " (Gennemsnitlig luftfugtighed: " + averageHumidity + "%)";
                             output.appendChild(div);
                         }
                     }
