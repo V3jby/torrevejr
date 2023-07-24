@@ -3,10 +3,10 @@
   <head>
     <meta charset="UTF-8">
     <title>Skal vasketøjet ud?</title>
-	<style>
-      	body {
-        	font-size: 36px;
-	}
+    <style>
+        body {
+            font-size: 36px;
+        }
     </style>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
@@ -46,6 +46,7 @@
                 var forecast = data.list.slice(0, 24 * 7); // get the next 7 days of data
 
                 var good_drying_days = {};
+                var bad_drying_days = {};
                 forecast.forEach(function(item) {
                     var date = new Date(item.dt_txt);
                     var day_name = days[date.getDay()];
@@ -56,11 +57,13 @@
                     if (hour >= 8 && hour <= 22) {
                         if (!good_drying_days[day_name]) {
                             good_drying_days[day_name] = {conditions: [], maxHumidity: 0};
+                            bad_drying_days[day_name] = {conditions: [], maxHumidity: 0};
                         }
                         if (weather != 'Rain' && humidity < 75) {
                             good_drying_days[day_name].conditions.push(true);
                         } else {
                             good_drying_days[day_name].conditions.push(false);
+                            bad_drying_days[day_name].conditions.push({weather: weather, humidity: humidity});
                         }
                         if (humidity > good_drying_days[day_name].maxHumidity) {
                             good_drying_days[day_name].maxHumidity = humidity;
@@ -72,16 +75,27 @@
                 Object.keys(good_drying_days).forEach(function(day_name) {
                     if (good_drying_days[day_name].conditions.every(val => val === true)) {
                         if (result === '') {
-                            result = 'Ja!, Men kun på disse dage:<br>';
+                            result = 'Godt tørre vejr på disse dage:<br>';
                         }
                         result += day_name + ':\t' + good_drying_days[day_name].maxHumidity + '% Luftfugtighed<br>';
                     }
                 });
 
                 if (result === '') {
-                    result = 'Nej, Dårligt tørre vejr i de næste 7 dage.';
+                    result = 'Nej, Dårligt tørre vejr i de næste 7 dage:<br>';
+                } else {
+                    result += '<br>Dårligt tørre vejr på disse dage:<br>';
                 }
-                
+
+                Object.keys(bad_drying_days).forEach(function(day_name) {
+                    if (bad_drying_days[day_name].conditions.length > 0) {
+                        var bad_conditions = bad_drying_days[day_name].conditions;
+                        var max_humidity = Math.max.apply(null, bad_conditions.map(function(h) { return h.humidity; }));
+                        var weather = bad_conditions.find(item => item.weather == 'Rain') ? 'Regn' : 'Tør';
+                        result += day_name + ':\t' + max_humidity + '% Luftfugtighed, Vejr: ' + weather + '<br>';
+                    }
+                });
+
                 $('#result').html(result);
             });
             
@@ -103,20 +117,13 @@
                     document.getElementById("cityName").innerHTML = "Din nuværende by er: " + cityName;
                 });
         }
-
-        function formatDate(date) {
-            var day = date.getDate();
-            var month = date.getMonth() + 1;
-            var year = date.getFullYear();
-            return day + '.' + month + '.' + year;
-        }
     </script>
   </head>
   <body onload="getLocation();">
     <h1>Skal vasketøjet ud?</h1>
-	 <h2><p id="result">Afventer GPS Lokation...</p></h2>
-	  <h1><p id="errorGPS"></p></h1>
-	  
-	<p id="cityName"></p>
+    <h2><p id="result">Afventer GPS Lokation...</p></h2>
+    <h1><p id="errorGPS"></p></h1>
+    
+    <p id="cityName"></p>
   </body>
 </html>
