@@ -57,7 +57,9 @@
                   console.log("Processing forecast for " + day);
                     var dt_txt = item.dt_txt;
                     var hour = new Date(dt_txt).getHours();
-                    var day = days[new Date(dt_txt).getDay()];
+                    var dayIndex = new Date(dt_txt).getDay();
+                    var day = days[dayIndex];
+                    console.log("dayIndex:", dayIndex);
                     
                     if (hour >= 8 && hour <= 22 && weather != 'Rain' && weather != 'Snow' && weather != 'Sleet' && humidity < 75) {
                         if (!good_drying_days.hasOwnProperty(day)) {
