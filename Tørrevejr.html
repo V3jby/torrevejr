@@ -45,7 +45,6 @@
                 var days = ['Søndag', 'Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag'];
                 var forecast = data.list.slice(0, 24 * 5); // get the next 5 days of data
                 var location = data.city.name;
-                document.getElementById("location").innerHTML = "Din nuværende by er: " + location + ".";
                 document.getElementById("heading").innerHTML = "Skal vasketøjet ud?";
 
                 var good_drying_days = {};
@@ -102,6 +101,7 @@
                         output.appendChild(div);
                     }
                 }
+                document.getElementById("location").innerHTML = "Din nuværende by er: " + location + ".";
             });
         }
     </script>
@@ -109,7 +109,7 @@
   <body onload="getLocation()">
     <div id="errorGPS"></div>
     <h1 id="heading"></h1>
-    <div id="location"></div>
     <div id="output"></div>
+    <div id="location"></div>
   </body>
 </html>
