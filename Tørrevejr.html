@@ -93,7 +93,7 @@
                     if (end_hour - start_hour >= 2) {
                         consolidated_hours.push([start_hour, end_hour + 1]); // add the last interval if it's at least 3 hours long
                     }
-                    
+
                     var average_humidity = Math.round(humidity_data[day].reduce((a, b) => a + b) / humidity_data[day].length);
                     
                     if (consolidated_hours.length > 0) {
