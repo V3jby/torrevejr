@@ -47,6 +47,7 @@
 
                 var good_drying_intervals = { 'formiddagen': [8, 11], 'middag': [11, 14], 'eftermiddag': [14, 17], 'aften': [17, 22] };
                 var good_drying_days = {};
+                var intervalCount = {};
 
                 forecast.forEach(function(item) {
                     var date = new Date(item.dt_txt);
@@ -55,31 +56,37 @@
                     var humidity = item.main.humidity;
                     var weather = item.weather[0].main;
 
+                    if (!intervalCount[day_name]) {
+                        intervalCount[day_name] = 0;
+                    }
+
                     Object.keys(good_drying_intervals).forEach(function(interval) {
                         var start_hour = good_drying_intervals[interval][0];
                         var end_hour = good_drying_intervals[interval][1];
-                        
+
                         if (hour >= start_hour && hour < end_hour) {
                             if (weather != 'Rain' && humidity < 75) {
                                 if (!good_drying_days[day_name]) {
                                     good_drying_days[day_name] = { intervals: [], date: date, humidity: humidity };
                                 }
-                                good_drying_days[day_name].intervals.push(interval);
+                                intervalCount[day_name]++;
                             }
                         }
                     });
+
+                    if (intervalCount[day_name] == 4) {
+                        good_drying_days[day_name].intervals.push("hele dagen");
+                    } else if (intervalCount[day_name] > 0) {
+                        good_drying_days[day_name].intervals.push(interval);
+                    }
                 });
 
                 if (Object.keys(good_drying_days).length > 0) {
                     var result = 'Ja!, Men kun på disse dage og tidspunkter:<br>';
                     Object.keys(good_drying_days).forEach(function(day_name) {
-                        if (good_drying_days[day_name].intervals.length == 4) {
-                            result += day_name + ', hele dagen\t(' + formatDate(good_drying_days[day_name].date) + '):\t' + good_drying_days[day_name].humidity + '% Luftfugtighed<br>';
-                        } else {
-                            good_drying_days[day_name].intervals.forEach(function(interval) {
-                                result += day_name + ', ' + interval + '\t(' + formatDate(good_drying_days[day_name].date) + '):\t' + good_drying_days[day_name].humidity + '% Luftfugtighed<br>';
-                            });
-                        }
+                        good_drying_days[day_name].intervals.forEach(function(interval) {
+                            result += day_name + ', ' + interval + '\t(' + formatDate(good_drying_days[day_name].date) + '):\t' + good_drying_days[day_name].humidity + '% Luftfugtighed<br>';
+                        });
                     });
                     $('#result').html(result);
                 } else {
@@ -118,7 +125,7 @@
     <h1>Skal vasketøjet ud?</h1>
     <h2><p id="result">Afventer GPS Lokation...</p></h2>
     <h1><p id="errorGPS"></p></h1>
-    
+
     <p id="cityName"></p>
   </body>
 </html>
