@@ -71,14 +71,13 @@
                                 }
                                 intervalCount[day_name]++;
                             }
+                            if (intervalCount[day_name] == 4 && !good_drying_days[day_name].intervals.includes("hele dagen")) {
+                                good_drying_days[day_name].intervals = ["hele dagen"];
+                            } else if (intervalCount[day_name] < 4 && !good_drying_days[day_name].intervals.includes(interval)) {
+                                good_drying_days[day_name].intervals.push(interval);
+                            }
                         }
                     });
-
-                    if (intervalCount[day_name] == 4) {
-                        good_drying_days[day_name].intervals.push("hele dagen");
-                    } else if (intervalCount[day_name] > 0) {
-                        good_drying_days[day_name].intervals.push(interval);
-                    }
                 });
 
                 if (Object.keys(good_drying_days).length > 0) {
