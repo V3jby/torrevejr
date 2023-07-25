@@ -91,7 +91,7 @@
               var consolidatedResult = '';
 
               if (consolidatedIntervals.length === timeIntervals.length) {
-                consolidatedResult = 'Hele dagen: Gennemsnitlig luftfugtighed: ' + avgHumidity + '%';
+                consolidatedResult = 'Hele dagen';
               } else {
                 var startTime = consolidatedIntervals[0].start;
                 var endTime = consolidatedIntervals[0].end;
@@ -101,7 +101,7 @@
                   if (nextInterval && nextInterval.start === currentInterval.end) {
                     endTime = nextInterval.end;
                   } else {
-                    consolidatedResult += startTime + '-' + endTime + ': Gennemsnitlig luftfugtighed: ' + avgHumidity + '%, ';
+                    consolidatedResult += startTime + '-' + endTime + ', ';
                     if (nextInterval) {
                       startTime = nextInterval.start;
                       endTime = nextInterval.end;
@@ -111,9 +111,10 @@
                 consolidatedResult = consolidatedResult.slice(0, -2);
               }
 
-              result += key + ' - ' + consolidatedResult + '<br>';
+              result += key + ' - ' + consolidatedResult + ' (' + avgHumidity + '%)<br>';
             });
 
+            result += '<br>Tal i parentes er den gennemsnitlige luftfugtighed på dagen.<br>';
             $('#result').html(result);
           } else {
             $('#result').html('Nej, Dårligt tørre vejr i de næste 7 dage.');
