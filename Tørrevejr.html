@@ -93,13 +93,19 @@
               if (consolidatedIntervals.length === timeIntervals.length) {
                 consolidatedResult = 'Hele dagen: Gennemsnitlig luftfugtighed: ' + avgHumidity + '%';
               } else {
+                var startTime = consolidatedIntervals[0].start;
+                var endTime = consolidatedIntervals[0].end;
                 for (var i = 0; i < consolidatedIntervals.length; i++) {
                   var currentInterval = consolidatedIntervals[i];
                   var nextInterval = consolidatedIntervals[i + 1];
                   if (nextInterval && nextInterval.start === currentInterval.end) {
-                    consolidatedResult += currentInterval.start + '-';
+                    endTime = nextInterval.end;
                   } else {
-                    consolidatedResult += currentInterval.end + ': Gennemsnitlig luftfugtighed: ' + avgHumidity + '%, ';
+                    consolidatedResult += startTime + '-' + endTime + ': Gennemsnitlig luftfugtighed: ' + avgHumidity + '%, ';
+                    if (nextInterval) {
+                      startTime = nextInterval.start;
+                      endTime = nextInterval.end;
+                    }
                   }
                 }
                 consolidatedResult = consolidatedResult.slice(0, -2);
