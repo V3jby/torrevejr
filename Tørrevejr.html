@@ -5,7 +5,7 @@
     <title>Skal vasketøjet ud?</title>
     <style>
       body {
-        font-size: 30px;
+        font-size: 36px;
       }
     </style>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -19,7 +19,20 @@
       }
 
       function showError(error) {
-        // ... (samme som tidligere)
+        switch(error.code) {
+          case error.PERMISSION_DENIED:
+            document.getElementById("errorGPS").innerHTML = "Bruger nægtede adgang til GPS Lokation.";
+            break;
+          case error.POSITION_UNAVAILABLE:
+            document.getElementById("errorGPS").innerHTML = "GPS Lokation er ikke tilgængelig.";
+            break;
+          case error.TIMEOUT:
+            document.getElementById("errorGPS").innerHTML = "Forespørgsel om GPS Lokation timede ud.";
+            break;
+          case error.UNKNOWN_ERROR:
+            document.getElementById("errorGPS").innerHTML = "En ukendt fejl opstod.";
+            break;
+        }
       }
 
       function showPosition(position) {
